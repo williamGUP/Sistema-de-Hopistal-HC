@@ -1,1 +1,2 @@
 # Sistema-de-Hopistal-HC
+Aplicación web para registrar y consultar pacientes de un hospital: datos generales, DNI, número de historia clínica, consultas médicas, enfermedades / antecedentes y operaciones 
