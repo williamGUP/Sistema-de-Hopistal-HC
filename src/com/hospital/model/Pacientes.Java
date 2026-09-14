@@ -57,10 +57,7 @@ public class GestionPacientes {
         System.out.println("❌ No se encontró ningún paciente con el DNI proporcionado.");
         return false;
     }
-
-    // ==========================================
     // MÉTODO MAIN (EJECUCIÓN DEL MENÚ)
-    // ==========================================
     public static void main(String[] args) {
         GestionPacientes gestion = new GestionPacientes();
         Scanner scanner = new Scanner(System.in);
