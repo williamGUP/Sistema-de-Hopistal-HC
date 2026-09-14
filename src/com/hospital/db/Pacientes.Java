@@ -58,19 +58,6 @@ public class Paciente {
                " | T. Sangre: " + tipoSangre +
                " | Obs: " + historialClinico;
     }
-
-    // Método MAIN 
-    public static void main(String[] args) {
-        System.out.println("=== PRUEBA DE LA CLASE PACIENTE ===");
-
-        // Crear dos objetos Paciente de prueba
-        Paciente p1 = new Paciente("PAC001", "12345678", "Juan", "Pérez", 30, "987654321", "O+", "Alergia a la penicilina");
-        Paciente p2 = new Paciente("PAC002", "87654321", "Maria", "Gómez", 25, "912345678", "A-", "Sin antecedentes");
-
-        // Mostrar los datos en consola usando el método toString()
-        System.out.println(p1.toString());
-        System.out.println(p2.toString());
-
         // Probar el cambio de un dato 
         System.out.println("\n...Actualizando teléfono de Juan...");
         p1.setTelefono("900111222");
