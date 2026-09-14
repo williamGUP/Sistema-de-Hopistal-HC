@@ -58,9 +58,4 @@ public class Paciente {
                " | T. Sangre: " + tipoSangre +
                " | Obs: " + historialClinico;
     }
-        // Probar el cambio de un dato 
-        System.out.println("\n...Actualizando teléfono de Juan...");
-        p1.setTelefono("900111222");
-        System.out.println("Nuevo teléfono de " + p1.getNombre() + ": " + p1.getTelefono());
-    }
 }
