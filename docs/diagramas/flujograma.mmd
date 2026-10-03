@@ -1,0 +1,30 @@
+flowchart TD
+    A([Inicio]) --> B[/Personal de salud abre\nHospital HC en el navegador/]
+    B --> C{¿Qué desea hacer?}
+
+    C -->|Buscar paciente existente| D[Ingresa DNI, N° de historia\no nombre en el buscador]
+    D --> E{¿Se encontró\nel paciente?}
+    E -->|No| F[Mensaje: sin resultados]
+    F --> C
+    E -->|Sí| G[Abrir historia clínica\ndel paciente]
+
+    C -->|Registrar paciente nuevo| H[Completar formulario:\nDNI, nombres, apellidos,\nfecha nacimiento, sexo, etc.]
+    H --> I{¿Datos válidos y\nDNI no duplicado?}
+    I -->|No| J[Mostrar error específico\ny mantener datos ingresados]
+    J --> H
+    I -->|Sí| K[Sistema genera N° de\nHistoria Clínica automático\nHC-000001, HC-000002...]
+    K --> G
+
+    G --> L{¿Qué desea agregar\na la historia?}
+    L -->|Nueva consulta| M[Registrar motivo, síntomas,\ndiagnóstico y tratamiento]
+    L -->|Nueva enfermedad\no antecedente| N[Registrar nombre, fecha de\ndiagnóstico y estado]
+    L -->|Nueva operación| O[Registrar tipo, fecha,\ncirujano y resultado]
+    L -->|Editar datos personales| P[Actualizar datos de contacto\ny generales del paciente]
+    L -->|Ver historial completo| Q[Consultar todas las consultas,\nenfermedades y operaciones]
+    L -->|Finalizar| R([Fin])
+
+    M --> G
+    N --> G
+    O --> G
+    P --> G
+    Q --> G
