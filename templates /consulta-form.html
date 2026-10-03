@@ -1,0 +1,56 @@
+{{> header}}
+
+<section class="page-head">
+  <h1>Nueva consulta</h1>
+  <a class="link" href="/pacientes/{{paciente.id}}">← Volver a {{paciente.nombreCompleto}}</a>
+</section>
+
+<section class="card">
+  <p class="patient-context"><span class="badge">{{paciente.numeroHistoria}}</span> {{paciente.nombreCompleto}} · DNI {{paciente.dni}}</p>
+
+  <form method="post" action="/pacientes/{{paciente.id}}/consultas/nueva" class="form-grid">
+
+    <div class="field">
+      <label for="fecha">Fecha y hora de la consulta</label>
+      <input type="datetime-local" id="fecha" name="fecha">
+      <span class="field-hint">Si se deja en blanco, se usa la fecha y hora actual.</span>
+    </div>
+
+    <div class="field">
+      <label for="medico">Médico tratante</label>
+      <input type="text" id="medico" name="medico" value="{{medico}}">
+    </div>
+
+    <div class="field field-wide">
+      <label for="motivo">Motivo de consulta *</label>
+      <input type="text" id="motivo" name="motivo" value="{{motivo}}" required>
+    </div>
+
+    <div class="field field-wide">
+      <label for="sintomas">Síntomas *</label>
+      <textarea id="sintomas" name="sintomas" rows="3" required>{{sintomas}}</textarea>
+    </div>
+
+    <div class="field field-wide">
+      <label for="diagnostico">Diagnóstico *</label>
+      <textarea id="diagnostico" name="diagnostico" rows="3" required>{{diagnostico}}</textarea>
+    </div>
+
+    <div class="field field-wide">
+      <label for="tratamiento">Tratamiento indicado</label>
+      <textarea id="tratamiento" name="tratamiento" rows="3">{{tratamiento}}</textarea>
+    </div>
+
+    <div class="field field-wide">
+      <label for="observaciones">Observaciones</label>
+      <textarea id="observaciones" name="observaciones" rows="2">{{observaciones}}</textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Guardar consulta</button>
+      <a class="btn btn-ghost" href="/pacientes/{{paciente.id}}">Cancelar</a>
+    </div>
+  </form>
+</section>
+
+{{> footer}}
