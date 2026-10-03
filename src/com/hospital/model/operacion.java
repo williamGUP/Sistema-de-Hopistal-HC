@@ -1,34 +1,69 @@
-package com.hospital.model;
+package com.hospital.db;
 
-import java.time.LocalDate;
+import com.hospital.model.Operacion;
 
-public class Operacion {
-    private Long id;
-    private Long pacienteId;
-    private LocalDate fecha;
-    private String tipoOperacion;
-    private String cirujano;
-    private String resultado;
-    private String observaciones;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+public class OperacionDao {
 
-    public Long getPacienteId() { return pacienteId; }
-    public void setPacienteId(Long pacienteId) { this.pacienteId = pacienteId; }
+    public long crear(Operacion o) throws SQLException {
+        String sql = "INSERT INTO operacion (paciente_id, fecha, tipo_operacion, cirujano, resultado, observaciones) VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = Db.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setLong(1, o.getPacienteId());
+            ps.setDate(2, Date.valueOf(o.getFecha()));
+            ps.setString(3, o.getTipoOperacion());
+            ps.setString(4, o.getCirujano());
+            ps.setString(5, o.getResultado());
+            ps.setString(6, o.getObservaciones());
+            ps.executeUpdate();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                keys.next();
+                return keys.getLong(1);
+            }
+        }
+    }
 
-    public LocalDate getFecha() { return fecha; }
-    public void setFecha(LocalDate fecha) { this.fecha = fecha; }
+    public Optional<Operacion> buscarPorId(long id) throws SQLException {
+        try (Connection conn = Db.getConnection(); PreparedStatement ps = conn.prepareStatement("SELECT * FROM operacion WHERE id = ?")) {
+            ps.setLong(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? Optional.of(map(rs)) : Optional.empty();
+            }
+        }
+    }
 
-    public String getTipoOperacion() { return tipoOperacion; }
-    public void setTipoOperacion(String tipoOperacion) { this.tipoOperacion = tipoOperacion; }
+    public List<Operacion> listarPorPaciente(long pacienteId) throws SQLException {
+        List<Operacion> out = new ArrayList<>();
+        try (Connection conn = Db.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT * FROM operacion WHERE paciente_id = ? ORDER BY fecha DESC, id DESC")) {
+            ps.setLong(1, pacienteId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) out.add(map(rs));
+            }
+        }
+        return out;
+    }
 
-    public String getCirujano() { return cirujano; }
-    public void setCirujano(String cirujano) { this.cirujano = cirujano; }
+    public void eliminar(long id) throws SQLException {
+        try (Connection conn = Db.getConnection(); PreparedStatement ps = conn.prepareStatement("DELETE FROM operacion WHERE id = ?")) {
+            ps.setLong(1, id);
+            ps.executeUpdate();
+        }
+    }
 
-    public String getResultado() { return resultado; }
-    public void setResultado(String resultado) { this.resultado = resultado; }
-
-    public String getObservaciones() { return observaciones; }
-    public void setObservaciones(String observaciones) { this.observaciones = observaciones; }
+    private Operacion map(ResultSet rs) throws SQLException {
+        Operacion o = new Operacion();
+        o.setId(rs.getLong("id"));
+        o.setPacienteId(rs.getLong("paciente_id"));
+        Date f = rs.getDate("fecha");
+        o.setFecha(f == null ? null : f.toLocalDate());
+        o.setTipoOperacion(rs.getString("tipo_operacion"));
+        o.setCirujano(rs.getString("cirujano"));
+        o.setResultado(rs.getString("resultado"));
+        o.setObservaciones(rs.getString("observaciones"));
+        return o;
+    }
 }
