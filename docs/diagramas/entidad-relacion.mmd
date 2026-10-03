@@ -1,0 +1,52 @@
+erDiagram
+    PACIENTE ||--o{ CONSULTA : "tiene"
+    PACIENTE ||--o{ ENFERMEDAD : "tiene"
+    PACIENTE ||--o{ OPERACION : "tiene"
+
+    PACIENTE {
+        bigint id PK
+        varchar dni UK "8 digitos"
+        varchar numero_historia UK "HC-000001..."
+        varchar nombres
+        varchar apellidos
+        date fecha_nacimiento
+        varchar sexo
+        varchar telefono
+        varchar direccion
+        varchar email
+        varchar grupo_sanguineo
+        varchar alergias
+        boolean activo "baja logica"
+        timestamp fecha_registro
+    }
+
+    CONSULTA {
+        bigint id PK
+        bigint paciente_id FK
+        timestamp fecha
+        varchar medico
+        varchar motivo
+        varchar sintomas
+        varchar diagnostico
+        varchar tratamiento
+        varchar observaciones
+    }
+
+    ENFERMEDAD {
+        bigint id PK
+        bigint paciente_id FK
+        varchar nombre
+        date fecha_diagnostico
+        varchar estado "ACTIVA CONTROLADA CURADA"
+        varchar observaciones
+    }
+
+    OPERACION {
+        bigint id PK
+        bigint paciente_id FK
+        date fecha
+        varchar tipo_operacion
+        varchar cirujano
+        varchar resultado "EXITOSA CON_COMPLICACIONES FALLIDA"
+        varchar observaciones
+    }
