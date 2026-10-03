@@ -1,141 +1,74 @@
-// 2. CLASE PRINCIPAL Y DE GESTIÓN
-public class GestionPacientes {
-    private List<Paciente> listaPacientes;
+package com.hospital.model;
 
-    public GestionPacientes() {
-        this.listaPacientes = new ArrayList<>();
-        cargarDatosPrueba(); // Carga datos iniciales para probar
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+
+public class Paciente {
+    private Long id;
+    private String dni;
+    private String numeroHistoria;
+    private String nombres;
+    private String apellidos;
+    private LocalDate fechaNacimiento;
+    private String sexo;
+    private String telefono;
+    private String direccion;
+    private String email;
+    private String grupoSanguineo;
+    private String alergias;
+    private boolean activo = true;
+    private LocalDateTime fechaRegistro;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getDni() { return dni; }
+    public void setDni(String dni) { this.dni = dni; }
+
+    public String getNumeroHistoria() { return numeroHistoria; }
+    public void setNumeroHistoria(String numeroHistoria) { this.numeroHistoria = numeroHistoria; }
+
+    public String getNombres() { return nombres; }
+    public void setNombres(String nombres) { this.nombres = nombres; }
+
+    public String getApellidos() { return apellidos; }
+    public void setApellidos(String apellidos) { this.apellidos = apellidos; }
+
+    public LocalDate getFechaNacimiento() { return fechaNacimiento; }
+    public void setFechaNacimiento(LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
+
+    public String getSexo() { return sexo; }
+    public void setSexo(String sexo) { this.sexo = sexo; }
+
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
+
+    public String getDireccion() { return direccion; }
+    public void setDireccion(String direccion) { this.direccion = direccion; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getGrupoSanguineo() { return grupoSanguineo; }
+    public void setGrupoSanguineo(String grupoSanguineo) { this.grupoSanguineo = grupoSanguineo; }
+
+    public String getAlergias() { return alergias; }
+    public void setAlergias(String alergias) { this.alergias = alergias; }
+
+    public boolean isActivo() { return activo; }
+    public void setActivo(boolean activo) { this.activo = activo; }
+
+    public LocalDateTime getFechaRegistro() { return fechaRegistro; }
+    public void setFechaRegistro(LocalDateTime fechaRegistro) { this.fechaRegistro = fechaRegistro; }
+
+    public String getNombreCompleto() {
+        return (apellidos == null ? "" : apellidos) + ", " + (nombres == null ? "" : nombres);
     }
 
-    // Carga los datos de prueba
-    private void cargarDatosPrueba() {
-        listaPacientes.add(new Paciente("PAC001", "12345678", "Juan", "Pérez", 30, "987654321", "O+", "Alergia a la penicilina"));
-        listaPacientes.add(new Paciente("PAC002", "87654321", "Maria", "Gómez", 25, "912345678", "A-", "Sin antecedentes"));
-    }
-
-    // Registrar un nuevo paciente validando su DNI
-    public boolean registrarPaciente(Paciente nuevo) {
-        if (buscarPorDni(nuevo.getDni()) != null) {
-            System.out.println("❌ Error: Ya existe un paciente con el DNI " + nuevo.getDni());
-            return false;
-        }
-        listaPacientes.add(nuevo);
-        System.out.println("✅ Paciente registrado con éxito.");
-        return true;
-    }
-
-    // Buscar paciente por su DNI
-    public Paciente buscarPorDni(String dni) {
-        for (Paciente p : listaPacientes) {
-            if (p.getDni().equalsIgnoreCase(dni)) {
-                return p;
-            }
-        }
-        return null;
-    }
-
-    // Listar a cada paciente
-    public void listarPacientes() {
-        if (listaPacientes.isEmpty()) {
-            System.out.println("No hay pacientes registrados.");
-            return;
-        }
-        System.out.println("\n--- LISTA DE PACIENTES ---");
-        for (Paciente p : listaPacientes) {
-            System.out.println(p);
-        }
-    }
-
-    // Eliminar paciente por su DNI
-    public boolean eliminarPaciente(String dni) {
-        Paciente p = buscarPorDni(dni);
-        if (p != null) {
-            listaPacientes.remove(p);
-            System.out.println("✅ Paciente eliminado correctamente.");
-            return true;
-        }
-        System.out.println("❌ No se encontró ningún paciente con el DNI proporcionado.");
-        return false;
-    }
-    // MÉTODO MAIN (EJECUCIÓN DEL MENÚ)
-    public static void main(String[] args) {
-        GestionPacientes gestion = new GestionPacientes();
-        Scanner scanner = new Scanner(System.in);
-        int opcion = 0;
-
-        do {
-            System.out.println("\n=== SISTEMA DE GESTIÓN DE PACIENTES ===");
-            System.out.println("1. Registrar nuevo paciente");
-            System.out.println("2. Buscar paciente por DNI");
-            System.out.println("3. Listar todos los pacientes");
-            System.out.println("4. Eliminar paciente");
-            System.out.println("5. Salir");
-            System.out.print("Seleccione una opción: ");
-
-            try {
-                opcion = Integer.parseInt(scanner.nextLine());
-            } catch (NumberFormatException e) {
-                opcion = 0;
-            }
-
-            switch (opcion) {
-                case 1:
-                    System.out.print("ID: ");
-                    String id = scanner.nextLine();
-                    System.out.print("DNI: ");
-                    String dni = scanner.nextLine();
-                    System.out.print("Nombre: ");
-                    String nombre = scanner.nextLine();
-                    System.out.print("Apellido: ");
-                    String apellido = scanner.nextLine();
-                    System.out.print("Edad: ");
-                    int edad = 0;
-                    try {
-                        edad = Integer.parseInt(scanner.nextLine());
-                    } catch (NumberFormatException e) {
-                        System.out.println("Edad inválida, se registrará 0 por defecto.");
-                    }
-                    System.out.print("Teléfono: ");
-                    String tel = scanner.nextLine();
-                    System.out.print("Tipo de Sangre: ");
-                    String sangre = scanner.nextLine();
-                    System.out.print("Historial/Observaciones: ");
-                    String historial = scanner.nextLine();
-
-                    Paciente nuevo = new Paciente(id, dni, nombre, apellido, edad, tel, sangre, historial);
-                    gestion.registrarPaciente(nuevo);
-                    break;
-
-                case 2:
-                    System.out.print("Ingrese DNI a buscar: ");
-                    String dniBusqueda = scanner.nextLine();
-                    Paciente encontrado = gestion.buscarPorDni(dniBusqueda);
-                    if (encontrado != null) {
-                        System.out.println("\nPaciente encontrado:\n" + encontrado);
-                    } else {
-                        System.out.println("❌ Paciente no encontrado.");
-                    }
-                    break;
-
-                case 3:
-                    gestion.listarPacientes();
-                    break;
-
-                case 4:
-                    System.out.print("Ingrese DNI a eliminar: ");
-                    String dniEliminar = scanner.nextLine();
-                    gestion.eliminarPaciente(dniEliminar);
-                    break;
-
-                case 5:
-                    System.out.println("¡Gracias por usar el sistema!");
-                    break;
-
-                default:
-                    System.out.println("Opción no válida. Intente de nuevo.");
-            }
-        } while (opcion != 5);
-
-        scanner.close();
+    /** Edad en años a partir de la fecha de nacimiento, o -1 si no se conoce. */
+    public int getEdad() {
+        if (fechaNacimiento == null) return -1;
+        return Period.between(fechaNacimiento, LocalDate.now()).getYears();
     }
 }
