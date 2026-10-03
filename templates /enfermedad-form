@@ -1,0 +1,42 @@
+{{> header}}
+
+<section class="page-head">
+  <h1>Nueva enfermedad / antecedente</h1>
+  <a class="link" href="/pacientes/{{paciente.id}}">← Volver a {{paciente.nombreCompleto}}</a>
+</section>
+
+<section class="card">
+  <p class="patient-context"><span class="badge">{{paciente.numeroHistoria}}</span> {{paciente.nombreCompleto}} · DNI {{paciente.dni}}</p>
+
+  <form method="post" action="/pacientes/{{paciente.id}}/enfermedades/nueva" class="form-grid">
+
+    <div class="field field-wide">
+      <label for="nombre">Nombre de la enfermedad *</label>
+      <input type="text" id="nombre" name="nombre" value="{{nombre}}" required>
+    </div>
+
+    <div class="field">
+      <label for="fechaDiagnostico">Fecha de diagnóstico</label>
+      <input type="date" id="fechaDiagnostico" name="fechaDiagnostico" value="{{fechaDiagnostico}}">
+    </div>
+
+    <div class="field">
+      <label for="estado">Estado *</label>
+      <select id="estado" name="estado">
+        {{{estadoOptionsHtml}}}
+      </select>
+    </div>
+
+    <div class="field field-wide">
+      <label for="observaciones">Observaciones</label>
+      <textarea id="observaciones" name="observaciones" rows="3">{{observaciones}}</textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Guardar</button>
+      <a class="btn btn-ghost" href="/pacientes/{{paciente.id}}">Cancelar</a>
+    </div>
+  </form>
+</section>
+
+{{> footer}}
