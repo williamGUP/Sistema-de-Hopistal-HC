@@ -1,0 +1,80 @@
+{{> header}}
+
+<section class="page-head">
+  <h1>{{#esEdicion}}Editar paciente{{/esEdicion}}{{^esEdicion}}Nuevo paciente{{/esEdicion}}</h1>
+  {{#esEdicion}}<a class="link" href="/pacientes">← Volver al listado</a>{{/esEdicion}}
+</section>
+
+<section class="card">
+  <form method="post" action="{{formAction}}" class="form-grid">
+
+    <div class="field">
+      <label for="dni">DNI *</label>
+      <input type="text" id="dni" name="dni" value="{{dni}}" maxlength="8" pattern="\d{8}" placeholder="8 dígitos" required>
+    </div>
+
+    {{#esEdicion}}
+    <div class="field">
+      <label>N° Historia clínica</label>
+      <input type="text" value="{{numeroHistoria}}" disabled>
+    </div>
+    {{/esEdicion}}
+
+    <div class="field">
+      <label for="nombres">Nombres *</label>
+      <input type="text" id="nombres" name="nombres" value="{{nombres}}" required>
+    </div>
+
+    <div class="field">
+      <label for="apellidos">Apellidos *</label>
+      <input type="text" id="apellidos" name="apellidos" value="{{apellidos}}" required>
+    </div>
+
+    <div class="field">
+      <label for="fechaNacimiento">Fecha de nacimiento</label>
+      <input type="date" id="fechaNacimiento" name="fechaNacimiento" value="{{fechaNacimiento}}">
+    </div>
+
+    <div class="field">
+      <label for="sexo">Sexo</label>
+      <select id="sexo" name="sexo">
+        <option value="">Selecciona...</option>
+        {{{sexoOptionsHtml}}}
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="grupoSanguineo">Grupo sanguíneo</label>
+      <select id="grupoSanguineo" name="grupoSanguineo">
+        {{{grupoSanguineoOptionsHtml}}}
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="telefono">Teléfono</label>
+      <input type="text" id="telefono" name="telefono" value="{{telefono}}">
+    </div>
+
+    <div class="field">
+      <label for="email">Correo electrónico</label>
+      <input type="email" id="email" name="email" value="{{email}}">
+    </div>
+
+    <div class="field field-wide">
+      <label for="direccion">Dirección</label>
+      <input type="text" id="direccion" name="direccion" value="{{direccion}}">
+    </div>
+
+    <div class="field field-wide">
+      <label for="alergias">Alergias conocidas</label>
+      <textarea id="alergias" name="alergias" rows="2">{{alergias}}</textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{{#esEdicion}}Guardar cambios{{/esEdicion}}{{^esEdicion}}Registrar paciente{{/esEdicion}}</button>
+      <a class="btn btn-ghost" href="/pacientes">Cancelar</a>
+    </div>
+  </form>
+</section>
+
+{{> footer}}
