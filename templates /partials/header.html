@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{pageTitle}} · Hospital HC</title>
+<link rel="stylesheet" href="/static/css/estilo.css">
+<link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark">✚</span>
+      <span class="brand-text">Hospital<strong>HC</strong></span>
+    </a>
+    <nav class="nav">
+      <a href="/" class="{{#activeInicio}}active{{/activeInicio}}">Inicio</a>
+      <a href="/pacientes" class="{{#activePacientes}}active{{/activePacientes}}">Pacientes</a>
+      <a href="/pacientes/nuevo" class="nav-cta {{#activeNuevo}}active{{/activeNuevo}}">+ Nuevo paciente</a>
+    </nav>
+  </div>
+</header>
+<main class="container">
+  {{#flashOk}}<div class="flash flash-ok">{{flashOk}}</div>{{/flashOk}}
+  {{#flashError}}<div class="flash flash-error">{{flashError}}</div>{{/flashError}}
