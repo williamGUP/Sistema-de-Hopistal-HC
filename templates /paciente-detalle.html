@@ -1,0 +1,94 @@
+{{> header}}
+
+<section class="patient-head">
+  <div>
+    <span class="badge badge-lg">{{paciente.numeroHistoria}}</span>
+    <h1>{{paciente.nombreCompleto}}</h1>
+    <p class="patient-sub">DNI {{paciente.dni}} · {{paciente.sexo}} · {{paciente.edad}} años</p>
+  </div>
+  <div class="patient-actions">
+    <a class="btn btn-sm" href="/pacientes/{{paciente.id}}/editar">Editar datos</a>
+    <form method="post" action="/pacientes/{{paciente.id}}/eliminar" onsubmit="return confirm('¿Quitar a este paciente del listado activo? El historial clínico se conserva.');">
+      <button type="submit" class="btn btn-sm btn-danger">Dar de baja</button>
+    </form>
+  </div>
+</section>
+
+<section class="card info-grid">
+  <div><span class="info-label">Fecha de nacimiento</span><span>{{paciente.fechaNacimiento}}</span></div>
+  <div><span class="info-label">Teléfono</span><span>{{paciente.telefono}}</span></div>
+  <div><span class="info-label">Correo</span><span>{{paciente.email}}</span></div>
+  <div><span class="info-label">Dirección</span><span>{{paciente.direccion}}</span></div>
+  <div><span class="info-label">Grupo sanguíneo</span><span>{{paciente.grupoSanguineo}}</span></div>
+  <div><span class="info-label">Registrado el</span><span>{{paciente.fechaRegistro}}</span></div>
+  <div class="info-wide"><span class="info-label">Alergias</span><span>{{paciente.alergias}}</span></div>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Consultas médicas</h2>
+    <a class="btn btn-sm btn-primary" href="/pacientes/{{paciente.id}}/consultas/nueva">+ Nueva consulta</a>
+  </div>
+  {{#consultas}}
+  <article class="record">
+    <div class="record-head">
+      <strong>{{fecha}}</strong>
+      <span class="record-meta">{{medico}}</span>
+      <form method="post" action="/consultas/{{id}}/eliminar" onsubmit="return confirm('¿Eliminar esta consulta?');">
+        <button type="submit" class="link-danger">Eliminar</button>
+      </form>
+    </div>
+    <p><span class="info-label">Motivo:</span> {{motivo}}</p>
+    <p><span class="info-label">Síntomas:</span> {{sintomas}}</p>
+    <p><span class="info-label">Diagnóstico:</span> {{diagnostico}}</p>
+    {{#tratamiento}}<p><span class="info-label">Tratamiento:</span> {{tratamiento}}</p>{{/tratamiento}}
+    {{#observaciones}}<p><span class="info-label">Observaciones:</span> {{observaciones}}</p>{{/observaciones}}
+  </article>
+  {{/consultas}}
+  {{^consultas}}<p class="empty">Todavía no hay consultas registradas para este paciente.</p>{{/consultas}}
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Enfermedades y antecedentes</h2>
+    <a class="btn btn-sm btn-primary" href="/pacientes/{{paciente.id}}/enfermedades/nueva">+ Nueva enfermedad</a>
+  </div>
+  {{#enfermedades}}
+  <article class="record">
+    <div class="record-head">
+      <strong>{{nombre}}</strong>
+      <span class="tag tag-{{estadoRaw}}">{{estado}}</span>
+      <form method="post" action="/enfermedades/{{id}}/eliminar" onsubmit="return confirm('¿Eliminar este registro?');">
+        <button type="submit" class="link-danger">Eliminar</button>
+      </form>
+    </div>
+    {{#fechaDiagnostico}}<p><span class="info-label">Diagnosticada el:</span> {{fechaDiagnostico}}</p>{{/fechaDiagnostico}}
+    {{#observaciones}}<p><span class="info-label">Observaciones:</span> {{observaciones}}</p>{{/observaciones}}
+  </article>
+  {{/enfermedades}}
+  {{^enfermedades}}<p class="empty">Todavía no hay enfermedades o antecedentes registrados.</p>{{/enfermedades}}
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Operaciones</h2>
+    <a class="btn btn-sm btn-primary" href="/pacientes/{{paciente.id}}/operaciones/nueva">+ Nueva operación</a>
+  </div>
+  {{#operaciones}}
+  <article class="record">
+    <div class="record-head">
+      <strong>{{tipoOperacion}}</strong>
+      <span class="tag tag-{{resultadoRaw}}">{{resultado}}</span>
+      <form method="post" action="/operaciones/{{id}}/eliminar" onsubmit="return confirm('¿Eliminar este registro?');">
+        <button type="submit" class="link-danger">Eliminar</button>
+      </form>
+    </div>
+    <p><span class="info-label">Fecha:</span> {{fecha}}</p>
+    {{#cirujano}}<p><span class="info-label">Cirujano:</span> {{cirujano}}</p>{{/cirujano}}
+    {{#observaciones}}<p><span class="info-label">Observaciones:</span> {{observaciones}}</p>{{/observaciones}}
+  </article>
+  {{/operaciones}}
+  {{^operaciones}}<p class="empty">Todavía no hay operaciones registradas.</p>{{/operaciones}}
+</section>
+
+{{> footer}}
