@@ -1,0 +1,11 @@
+Hola {{nombre}}, tienes {{total}} mensajes.
+{{#items}}
+- {{nombre}} ({{estado}})
+{{/items}}
+{{^items}}
+No hay items.
+{{/items}}
+{{#activo}}Está activo{{/activo}}
+{{^activo}}Está inactivo{{/activo}}
+Raw: {{{crudo}}} Escapado: {{crudo}}
+{{> saludo}}
