@@ -1,0 +1,109 @@
+{{> header}}
+
+<section class="page-head">
+  <div>
+    <h1>Bitacora de seguridad</h1>
+    <p class="patient-sub">
+      Registro de accesos, cierres de sesion, intentos fallidos y operaciones denegadas por rol.
+    </p>
+  </div>
+</section>
+
+<div class="acc-stats">
+  <div class="acc-stat">
+    <div class="acc-stat-value">{{totalEventos}}</div>
+    <div class="acc-stat-label">Eventos totales</div>
+  </div>
+  <div class="acc-stat is-ok">
+    <div class="acc-stat-value">{{totalOk}}</div>
+    <div class="acc-stat-label">Accesos correctos</div>
+  </div>
+  <div class="acc-stat is-bad">
+    <div class="acc-stat-value">{{totalFallidos}}</div>
+    <div class="acc-stat-label">Intentos fallidos</div>
+  </div>
+  <div class="acc-stat is-warn">
+    <div class="acc-stat-value">{{totalDenegados}}</div>
+    <div class="acc-stat-label">Operaciones denegadas</div>
+  </div>
+</div>
+
+<form class="acc-filters" method="get" action="/auditoria">
+  <div class="acc-field">
+    <label for="q">Usuario</label>
+    <input class="acc-input" type="text" id="q" name="q" value="{{q}}" placeholder="Filtrar por usuario">
+  </div>
+  <div class="acc-field">
+    <label for="resultado">Resultado</label>
+    <select class="acc-input" id="resultado" name="resultado">
+      <option value="">Todos</option>
+      <option value="CORRECTO" {{#resultadoCorrecto}}selected{{/resultadoCorrecto}}>Accesos correctos</option>
+      <option value="FALLIDO" {{#resultadoFallido}}selected{{/resultadoFallido}}>Intentos fallidos</option>
+      <option value="DENEGADO" {{#resultadoDenegado}}selected{{/resultadoDenegado}}>Operaciones denegadas</option>
+      <option value="CIERRE" {{#resultadoCierre}}selected{{/resultadoCierre}}>Cierres de sesion</option>
+    </select>
+  </div>
+  <button class="acc-btn acc-btn-primary" type="submit">Filtrar</button>
+  {{#hayFiltro}}
+  <a class="acc-btn acc-btn-secondary" href="/auditoria">Limpiar filtros</a>
+  {{/hayFiltro}}
+</form>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Ultimos {{eventosVisibles}} eventos</h2>
+  </div>
+
+  <div class="acc-table-scroll">
+    <table class="table tabla-auditoria">
+      <thead>
+        <tr>
+          <th>Fecha y hora</th>
+          <th>Usuario</th>
+          <th>Rol</th>
+          <th>Accion</th>
+          <th>Ruta</th>
+          <th>IP</th>
+          <th>Resultado</th>
+        </tr>
+      </thead>
+      <tbody>
+      {{#eventos}}
+        <tr>
+          <td class="acc-mono">{{fecha}}</td>
+          <td>
+            <strong>{{nombre}}</strong>
+            <span class="record-meta">{{usuario}}</span>
+          </td>
+          <td><span class="rol {{rolCss}}">{{rolEtiqueta}}</span></td>
+          <td>{{accion}}</td>
+          <td class="acc-mono">{{ruta}}</td>
+          <td class="acc-mono">{{ip}}</td>
+          <td>
+            <span class="acc-pill {{claseResultado}}">{{resultado}}</span>
+            {{#detalle}}<span class="record-meta">{{detalle}}</span>{{/detalle}}
+          </td>
+        </tr>
+      {{/eventos}}
+      {{^eventos}}
+        <tr>
+          <td colspan="7">
+            <div class="acc-empty">
+              <div class="acc-empty-title">Sin eventos que coincidan</div>
+              {{#hayFiltro}}
+              <p>No hay registros para el filtro aplicado.</p>
+              <a class="btn btn-sm" href="/auditoria">Quitar filtros</a>
+              {{/hayFiltro}}
+              {{^hayFiltro}}
+              <p>La bitacora se llenara a medida que se use el sistema.</p>
+              {{/hayFiltro}}
+            </div>
+          </td>
+        </tr>
+      {{/eventos}}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{{> footer}}
