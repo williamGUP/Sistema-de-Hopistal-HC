@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{pageTitle}} · Hospital HC</title>
+<link rel="stylesheet" href="/static/css/estilo.css">
+<link rel="stylesheet" href="/static/css/seguridad.css">
+<link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+
+<main class="container">
+
+  <section class="acc-deny">
+    <span class="acc-deny-icon" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <rect x="4" y="10" width="16" height="10" rx="2"/>
+        <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+      </svg>
+    </span>
+
+    <h1>{{tituloAviso}}</h1>
+    <p class="patient-sub">{{mensajeAviso}}</p>
+
+    {{#rutaIntentada}}
+    <span class="acc-deny-path">{{rutaIntentada}}</span>
+    {{/rutaIntentada}}
+
+    {{#rolEtiquetaUsuario}}
+    <div class="acc-alert acc-alert-info acc-alert-block acc-alert-center">
+      <span class="acc-alert-icon" aria-hidden="true">i</span>
+      <span>Estas conectado como <strong>{{rolEtiquetaUsuario}}</strong>. {{rolDescripcionUsuario}}</span>
+    </div>
+    {{/rolEtiquetaUsuario}}
+
+    {{#rolesSugeridos}}
+    <div class="acc-deny-roles">
+      <h2>Roles con acceso a esta seccion</h2>
+      <ul>{{{rolesSugeridos}}}</ul>
+    </div>
+    {{/rolesSugeridos}}
+
+    <div class="acc-deny-actions">
+      <a class="acc-btn acc-btn-primary" href="/">Volver al inicio</a>
+      {{#haySesion}}
+      <a class="acc-btn acc-btn-secondary" href="/mi-cuenta">Ver mis permisos</a>
+      <form method="post" action="/logout" class="acc-inline-form">
+        <input type="hidden" name="csrf" value="{{csrfToken}}">
+        <button class="acc-btn acc-btn-secondary" type="submit">Cambiar de usuario</button>
+      </form>
+      {{/haySesion}}
+      <a class="acc-btn acc-btn-secondary" href="/pacientes">Ir a pacientes</a>
+    </div>
+
+    <p class="acc-foot">
+      El intento quedo registrado en la bitacora de seguridad.
+    </p>
+  </section>
+
+</main>
+
+</body>
+</html>
