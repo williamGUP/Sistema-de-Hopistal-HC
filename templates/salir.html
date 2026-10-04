@@ -1,0 +1,27 @@
+{{> header}}
+
+<section class="page-head">
+  <div>
+    <h1>Cerrar sesion</h1>
+    <p class="patient-sub">
+      {{usuarioActual}} ({{rolEtiqueta}}) · {{sesionMinutosRestantes}} min restantes antes del cierre automatico
+    </p>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Vas a salir de Hospital HC</h2>
+  <p class="patient-sub">
+    Por seguridad la sesion se cierra por completo y el equipo queda protegido.
+    Tendras que volver a entrar con tu usuario y contrasena para seguir trabajando.
+  </p>
+  <div class="form-actions">
+    <form method="post" action="/logout">
+      <input type="hidden" name="csrf" value="{{csrfToken}}">
+      <button class="btn btn-primary" type="submit" data-acc-enviar>Cerrar sesion ahora</button>
+    </form>
+    <a class="btn" href="/">Seguir trabajando</a>
+  </div>
+</section>
+
+{{> footer}}
