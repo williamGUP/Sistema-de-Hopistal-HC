@@ -1,0 +1,141 @@
+{{> header}}
+
+<section class="page-head">
+  <div>
+    <h1>Mi cuenta</h1>
+    <p class="patient-sub">Datos de acceso, permisos asignados y sesiones abiertas de tu usuario.</p>
+  </div>
+  <span class="rol {{rolCss}}">{{rolEtiqueta}}</span>
+</section>
+
+<div class="acc-grid-2">
+
+  <section class="card">
+    <h2>Identidad</h2>
+    <div class="info-grid">
+      <div class="info-wide">
+        <span class="info-label">Nombre completo</span>
+        <strong>{{nombreCompleto}}</strong>
+      </div>
+      <div>
+        <span class="info-label">Usuario</span>
+        <strong>{{username}}</strong>
+      </div>
+      <div>
+        <span class="info-label">Rol</span>
+        <strong>{{rolEtiquetaCuenta}}</strong>
+      </div>
+      <div class="info-wide">
+        <span class="info-label">Alcance del rol</span>
+        <span>{{rolDescripcionCuenta}}</span>
+      </div>
+    </div>
+    <p class="field-hint">
+      Si tu nombre o tu rol estan equivocados, pidele al administrador general que lo corrija.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Esta sesion</h2>
+    <div class="info-grid">
+      <div>
+        <span class="info-label">Desde (IP)</span>
+        <strong class="acc-mono">{{desdeIP}}</strong>
+      </div>
+      <div>
+        <span class="info-label">Navegador</span>
+        <strong>{{desdeNavegador}}</strong>
+      </div>
+      <div>
+        <span class="info-label">Cierre automatico</span>
+        <strong>{{sesionMinutos}} min</strong>
+      </div>
+      <div>
+        <span class="info-label">Limite sin actividad</span>
+        <strong>{{sesionMaximaMinutos}} min</strong>
+      </div>
+    </div>
+
+    <h3 class="acc-mt-4">Sesiones abiertas de mi cuenta</h3>
+    {{#sesionesActivas}}
+    <div class="record {{#esActual}}acc-sesion-actual{{/esActual}}">
+      <div class="record-head">
+        <strong>{{navegador}}</strong>
+        {{#esActual}}<span class="badge">Esta sesion</span>{{/esActual}}
+      </div>
+      <p class="record-meta">{{ip}} · inicio {{inicio}} · {{minutos}} min restantes</p>
+    </div>
+    {{/sesionesActivas}}
+    <p class="field-hint">
+      Si ves una sesion que no reconoces, cambia tu contrasena: eso cerrara todas las demas.
+    </p>
+  </section>
+
+</div>
+
+<div class="acc-grid-2">
+
+  <section class="card">
+    <h2>Mis permisos por modulo</h2>
+    {{#permisoActual}}
+    <div class="acc-perm-row">
+      <span class="acc-perm-name">{{familia}}</span>
+      <span class="acc-perm-count acc-perm-acciones">{{{acciones}}}</span>
+    </div>
+    {{/permisoActual}}
+  </section>
+
+  <section class="card">
+    <h2>Cambiar mi contrasena</h2>
+    <form method="post" action="/mi-cuenta" data-acc-form>
+      <input type="hidden" name="csrf" value="{{csrfToken}}">
+
+      <div class="form-grid">
+        <div class="field field-wide">
+          <label for="passwordActual">Contrasena actual</label>
+          <span class="acc-input-wrap">
+            <input class="acc-input has-toggle" type="password" id="passwordActual" name="passwordActual"
+                   autocomplete="current-password" required>
+            <button class="acc-toggle" type="button" data-acc-toggle="passwordActual" aria-label="Mostrar contrasena">Ver</button>
+          </span>
+        </div>
+
+        <div class="field">
+          <label for="passwordNueva">Contrasena nueva</label>
+          <span class="acc-input-wrap">
+            <input class="acc-input has-toggle" type="password" id="passwordNueva" name="passwordNueva"
+                   autocomplete="new-password" required
+                   minlength="8" data-acc-medidor aria-describedby="fuerzaContrasena">
+            <button class="acc-toggle" type="button" data-acc-toggle="passwordNueva" aria-label="Mostrar contrasena">Ver</button>
+          </span>
+          <div class="acc-strength" data-acc-medidor-caja id="fuerzaContrasena">
+            <span class="acc-strength-bars"><span></span><span></span><span></span><span></span></span>
+            <span class="acc-strength-text" data-acc-medidor-texto>Minimo 8 caracteres, con letras y numeros.</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="passwordRepetir">Repite la contrasena nueva</label>
+          <span class="acc-input-wrap">
+            <input class="acc-input has-toggle" type="password" id="passwordRepetir" name="passwordRepetir"
+                   autocomplete="new-password" required minlength="8">
+            <button class="acc-toggle" type="button" data-acc-toggle="passwordRepetir" aria-label="Mostrar contrasena">Ver</button>
+          </span>
+          <span class="acc-help acc-alert acc-alert-error acc-alert-block" data-acc-coincide hidden>
+            Las contrasenas no coinciden.
+          </span>
+        </div>
+
+        <div class="form-actions field-wide">
+          <button class="btn btn-primary" type="submit" data-acc-enviar>Actualizar contrasena</button>
+        </div>
+      </div>
+    </form>
+    <p class="field-hint">
+      Al cambiarla se cerraran automaticamente todas tus otras sesiones abiertas.
+    </p>
+  </section>
+
+</div>
+
+{{> footer}}

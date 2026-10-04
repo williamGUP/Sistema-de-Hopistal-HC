@@ -1,0 +1,137 @@
+{{> header}}
+
+<section class="page-head">
+  <div>
+    <h1>{{titulo}}</h1>
+    <p class="patient-sub">
+      {{#esEdicion}}
+      Cambia el rol, el estado o restablece la contrasena de {{username}}.
+      {{/esEdicion}}
+      {{^esEdicion}}
+      Asigna un rol a la nueva cuenta: definira exactamente que puede ver y modificar en el sistema.
+      {{/esEdicion}}
+    </p>
+  </div>
+  <a class="btn" href="/usuarios">&larr; Volver al listado</a>
+</section>
+
+<section class="card">
+  <form method="post" action="{{formAction}}" data-acc-form>
+    <input type="hidden" name="csrf" value="{{csrfToken}}">
+
+    <div class="form-grid">
+
+      <div class="field">
+        <label for="username">Usuario</label>
+        <input type="text" id="username" name="username" value="{{username}}"
+               autocomplete="off" autocapitalize="none" spellcheck="false"
+               required minlength="3" maxlength="50"
+               {{^usernameEditable}}disabled{{/usernameEditable}}
+               placeholder="ej. jperez">
+        {{^usernameEditable}}
+        <span class="field-hint">El nombre de usuario no se puede cambiar una vez creado.</span>
+        {{/usernameEditable}}
+        {{#usernameEditable}}
+        <span class="field-hint">Solo letras, numeros, punto, guion y guion bajo.</span>
+        {{/usernameEditable}}
+      </div>
+
+      <div class="field">
+        <label for="nombreCompleto">Nombre completo</label>
+        <input type="text" id="nombreCompleto" name="nombreCompleto" value="{{nombreCompleto}}"
+               autocomplete="name" required maxlength="150"
+               placeholder="Ej. Dra. Lucia Fernandez Ramirez">
+      </div>
+
+      <div class="field">
+        <label for="password">Contrasena</label>
+        <span class="acc-input-wrap">
+          <input class="acc-input has-toggle" type="password" id="password" name="password"
+                 autocomplete="new-password" required minlength="8"
+                 {{^passwordEditable}}disabled{{/passwordEditable}}
+                 {{#esEdicion}}placeholder="Dejalo vacio para conservarla"{{/esEdicion}}
+                 data-acc-medidor aria-describedby="ayudaContrasena">
+          <button class="acc-toggle" type="button" data-acc-toggle="password" aria-label="Mostrar contrasena">Ver</button>
+        </span>
+        <div class="acc-strength" data-acc-medidor-caja id="ayudaContrasena">
+          <span class="acc-strength-bars"><span></span><span></span><span></span><span></span></span>
+          <span class="acc-strength-text" data-acc-medidor-texto>{{ayudaContrasena}}</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="rol">Rol</label>
+        <select id="rol" name="rol" required>
+          {{#rolesOpciones}}
+          <option value="{{clave}}" {{#seleccionada}}selected{{/seleccionada}}>{{etiqueta}}</option>
+          {{/rolesOpciones}}
+        </select>
+        <span class="field-hint">El rol determina que modulos puede usar esta cuenta.</span>
+      </div>
+
+      {{#esEdicion}}
+      <div class="field field-wide">
+        <label class="acc-check">
+          <input type="checkbox" name="activo" value="1" {{#activo}}checked{{/activo}}>
+          <span>Cuenta activa (puede iniciar sesion)</span>
+        </label>
+        <span class="field-hint">
+          Al desactivarla se cierran al instante todas sus sesiones abiertas.
+        </span>
+      </div>
+      {{/esEdicion}}
+
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit" data-acc-enviar>
+          {{#esEdicion}}Guardar cambios{{/esEdicion}}
+          {{^esEdicion}}Crear usuario{{/esEdicion}}
+        </button>
+        <a class="btn" href="/usuarios">Cancelar</a>
+      </div>
+
+    </div>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Que puede hacer cada rol</h2>
+  <div class="acc-table-scroll">
+    <table class="table">
+      <thead>
+        <tr><th>Rol</th><th>Alcance</th><th>Puede crear</th><th>Puede eliminar</th><th>Administracion</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="rol rol-ADMIN_GENERAL">Administrador general</span></td>
+          <td>Control total del sistema.</td>
+          <td><span class="acc-yes">Si</span></td>
+          <td><span class="acc-yes">Si</span></td>
+          <td><span class="acc-yes">Usuarios y bitacora</span></td>
+        </tr>
+        <tr>
+          <td><span class="rol rol-DIGITADOR">Digitador</span></td>
+          <td>Captura de datos de pacientes; lectura de la informacion clinica.</td>
+          <td><span class="acc-yes">Pacientes</span></td>
+          <td><span class="acc-no">No</span></td>
+          <td><span class="acc-no">No</span></td>
+        </tr>
+        <tr>
+          <td><span class="rol rol-ENFERMERA">Enfermeria</span></td>
+          <td>Consultas y enfermedades; sin operaciones quirurgicas.</td>
+          <td><span class="acc-yes">Pacientes, consultas, enfermedades</span></td>
+          <td><span class="acc-yes">Consultas y enfermedades</span></td>
+          <td><span class="acc-no">No</span></td>
+        </tr>
+        <tr>
+          <td><span class="rol rol-DOCTOR">Medico</span></td>
+          <td>Historia clinica completa, incluidas operaciones.</td>
+          <td><span class="acc-yes">Todos los modulos clinicos</span></td>
+          <td><span class="acc-yes">Consultas, enfermedades y operaciones</span></td>
+          <td><span class="acc-no">No</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{{> footer}}

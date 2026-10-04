@@ -1,0 +1,93 @@
+{{> header}}
+
+<section class="page-head">
+  <div>
+    <h1>Usuarios del sistema</h1>
+    <p class="patient-sub">
+      {{totalUsuarios}} cuenta(s) visibles · {{totalActivos}} activa(s). Cada usuario pertenece a uno de los cuatro roles.
+    </p>
+  </div>
+  {{#puedeCrearUsuario}}
+  <a class="btn btn-primary" href="/usuarios/nuevo">+ Nuevo usuario</a>
+  {{/puedeCrearUsuario}}
+</section>
+
+<form class="search-box" method="get" action="/usuarios">
+  <input type="text" name="q" value="{{q}}" placeholder="Buscar por usuario, nombre o rol...">
+  <button type="submit">Buscar</button>
+</form>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Cuentas registradas</h2>
+    <span class="record-meta">Las cuentas desactivadas no pueden iniciar sesion</span>
+  </div>
+
+  <div class="acc-table-scroll">
+    <table class="table tabla-usuarios">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Nombre completo</th>
+          <th>Rol y alcance</th>
+          <th class="acc-centro">Permisos</th>
+          <th>Estado</th>
+          <th class="table-actions">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+      {{#usuarios}}
+        <tr>
+          <td><strong>{{username}}</strong></td>
+          <td>{{nombreCompleto}}</td>
+          <td>
+            <div class="usuarios-rol">
+              <span class="rol {{rolCss}}">{{rolEtiqueta}}</span>
+              <span class="record-meta">{{rolDescripcion}}</span>
+            </div>
+          </td>
+          <td class="acc-centro"><span class="badge">{{numeroPermisos}}</span></td>
+          <td>
+            {{#activo}}
+            <span class="acc-pill is-ok">Activo</span>
+            {{/activo}}
+            {{^activo}}
+            <span class="acc-pill is-bad">Desactivado</span>
+            {{/activo}}
+          </td>
+          <td>
+            <div class="usuarios-acciones">
+              {{#puedeEditarUsuario}}
+              <a class="btn btn-sm" href="/usuarios/{{id}}/editar">Editar</a>
+              {{/puedeEditarUsuario}}
+              {{#puedeEliminarUsuario}}
+              {{#activo}}
+              <form method="post" action="/usuarios/{{id}}/eliminar">
+                <input type="hidden" name="csrf" value="{{csrfToken}}">
+                <button class="link-danger" type="submit">Desactivar</button>
+              </form>
+              {{/activo}}
+              {{/puedeEliminarUsuario}}
+            </div>
+          </td>
+        </tr>
+      {{/usuarios}}
+      {{^usuarios}}
+        <tr>
+          <td colspan="6">
+            {{#hayFiltro}}
+            <div class="acc-empty">
+              <div class="acc-empty-title">Ningun usuario coincide con "{{q}}"</div>
+              <p>Prueba con otro nombre o quita el filtro de busqueda.</p>
+              <a class="btn btn-sm" href="/usuarios">Quitar filtro</a>
+            </div>
+            {{/hayFiltro}}
+          </td>
+        </tr>
+      {{/usuarios}}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{{> footer}}
