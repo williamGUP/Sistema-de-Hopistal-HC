@@ -1,0 +1,19 @@
+# Datos generados en tiempo de ejecución
+data/
+
+# Archivos compilados
+build/
+*.class
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Sistema
+Thumbs.db
+.DS_Store
+
+# Logs de arranque del servidor
+*.log
+*.err

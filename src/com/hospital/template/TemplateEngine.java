@@ -11,14 +11,28 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Motor de plantillas que usamos para armar las páginas del sistema.
- * Lee los archivos .html de templates/ y reemplaza los {{llave}}
- * por los datos reales: por ejemplo, {{nombre}} pone el nombre del
- * paciente. Sirve para listas ({{#items}}), bloques "si no hay" ({{^}})
- * y para meter el header/footer con {{> partial}}. Siempre escapa el
- * texto antes de mostrarlo para evitar que se inyecte HTML raro.
+ * Motor de plantillas HTML minimalista, propio (sin dependencias externas),
+ * inspirado en Mustache. Soporta:
+ *
+ *   {{variable}}          → valor escapado para HTML
+ *   {{{variable}}}        → valor SIN escapar (úsalo solo con HTML de confianza
+ *                           generado por la propia app, nunca con texto libre
+ *                           ingresado por un usuario)
+ *   {{#lista}} ... {{/lista}}   → repite el bloque por cada elemento de la lista
+ *                                  (si el elemento es un Map, sus claves quedan
+ *                                  visibles dentro del bloque)
+ *   {{#condicion}} ... {{/condicion}}  → muestra el bloque si el valor es "verdadero"
+ *                                         (no nulo, no vacío, no false, no cero)
+ *   {{^condicion}} ... {{/condicion}}  → muestra el bloque si es "falso"/vacío
+ *   {{> nombreParcial}}    → incluye templates/partials/nombreParcial.html
+ *   {{! comentario }}      → comentario, no se muestra
+ *
+ * Las variables se resuelven contra una pila de contextos (como Mustache):
+ * al entrar a una sección se agrega un contexto nuevo arriba de la pila, y la
+ * búsqueda de una variable recorre la pila de arriba hacia abajo, así que las
+ * plantillas incluidas (partials) y los bloques anidados siguen viendo las
+ * variables del contexto exterior.
  */
-
 public class TemplateEngine {
 
     private final Path templatesDir;

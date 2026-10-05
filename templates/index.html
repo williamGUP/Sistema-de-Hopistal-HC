@@ -1,47 +1,79 @@
 {{> header}}
 
-<section class="page-head">
-  <h1>Nueva operación</h1>
-  <a class="link" href="/pacientes/{{paciente.id}}">← Volver a {{paciente.nombreCompleto}}</a>
+<section class="hero">
+  <div>
+    <h1>Bienvenido a Hospital HC</h1>
+    <p class="hero-sub">Busca un paciente por DNI, número de historia clínica o nombre para ver su historial completo: consultas, enfermedades y operaciones.</p>
+  </div>
+  <div class="hero-stat">
+    <span class="hero-stat-number">{{totalPacientes}}</span>
+    <span class="hero-stat-label">pacientes activos</span>
+  </div>
 </section>
 
+<form class="search-box" method="get" action="/">
+  <input type="text" name="q" value="{{q}}" placeholder="Buscar por DNI, N° de historia, nombres o apellidos..." autofocus>
+  <button type="submit">Buscar</button>
+</form>
+
+{{#buscoAlgo}}
 <section class="card">
-  <p class="patient-context"><span class="badge">{{paciente.numeroHistoria}}</span> {{paciente.nombreCompleto}} · DNI {{paciente.dni}}</p>
+  <h2>Resultados de búsqueda para "{{q}}"</h2>
+  <table class="table">
+    <thead><tr><th>N° Historia</th><th>DNI</th><th>Paciente</th><th>Edad</th><th>Sexo</th><th></th></tr></thead>
+    <tbody>
+    {{#resultados}}
+      <tr>
+        <td><span class="badge">{{numeroHistoria}}</span></td>
+        <td>{{dni}}</td>
+        <td>{{nombreCompleto}}</td>
+        <td>{{edad}}</td>
+        <td>{{sexo}}</td>
+        <td class="table-actions"><a class="btn btn-sm" href="/pacientes/{{id}}">Ver historia →</a></td>
+      </tr>
+    {{/resultados}}
+    {{^resultados}}
+      <tr><td colspan="6" class="empty">No se encontró ningún paciente que coincida con "{{q}}".</td></tr>
+    {{/resultados}}
+    </tbody>
+  </table>
+</section>
+{{/buscoAlgo}}
 
-  <form method="post" action="/pacientes/{{paciente.id}}/operaciones/nueva" class="form-grid">
+<section class="card">
+  <div class="card-head">
+    <h2>Últimos pacientes registrados</h2>
+    <a class="link" href="/pacientes">Ver todos →</a>
+  </div>
+  <table class="table">
+    <thead><tr><th>N° Historia</th><th>DNI</th><th>Paciente</th><th>Edad</th><th>Sexo</th><th></th></tr></thead>
+    <tbody>
+    {{#ultimosPacientes}}
+      <tr>
+        <td><span class="badge">{{numeroHistoria}}</span></td>
+        <td>{{dni}}</td>
+        <td>{{nombreCompleto}}</td>
+        <td>{{edad}}</td>
+        <td>{{sexo}}</td>
+        <td class="table-actions"><a class="btn btn-sm" href="/pacientes/{{id}}">Ver historia →</a></td>
+      </tr>
+    {{/ultimosPacientes}}
+    {{^ultimosPacientes}}
+      <tr><td colspan="6" class="empty">Todavía no hay pacientes registrados. <a href="/pacientes/nuevo">Registra el primero</a>.</td></tr>
+    {{/ultimosPacientes}}
+    </tbody>
+  </table>
+</section>
 
-    <div class="field field-wide">
-      <label for="tipoOperacion">Tipo de operación *</label>
-      <input type="text" id="tipoOperacion" name="tipoOperacion" value="{{tipoOperacion}}" required>
-    </div>
-
-    <div class="field">
-      <label for="fecha">Fecha *</label>
-      <input type="date" id="fecha" name="fecha" value="{{fecha}}" required>
-    </div>
-
-    <div class="field">
-      <label for="cirujano">Cirujano</label>
-      <input type="text" id="cirujano" name="cirujano" value="{{cirujano}}">
-    </div>
-
-    <div class="field">
-      <label for="resultado">Resultado *</label>
-      <select id="resultado" name="resultado">
-        {{{resultadoOptionsHtml}}}
-      </select>
-    </div>
-
-    <div class="field field-wide">
-      <label for="observaciones">Observaciones</label>
-      <textarea id="observaciones" name="observaciones" rows="3">{{observaciones}}</textarea>
-    </div>
-
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Guardar</button>
-      <a class="btn btn-ghost" href="/pacientes/{{paciente.id}}">Cancelar</a>
-    </div>
-  </form>
+<section class="quick-links">
+  <a class="quick-card" href="/pacientes/nuevo">
+    <span class="quick-icon">➕</span>
+    <span>Registrar nuevo paciente</span>
+  </a>
+  <a class="quick-card" href="/pacientes">
+    <span class="quick-icon">📋</span>
+    <span>Ver listado completo</span>
+  </a>
 </section>
 
 {{> footer}}
