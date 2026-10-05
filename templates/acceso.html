@@ -1,12 +1,137 @@
-== Sistema de Registro de Pacientes - Hospital ==
-Se insertaron pacientes de ejemplo (primera ejecucion).
-Base de datos lista en: E:\nuevo\hospital-hc-PC7-ROLES\hospital\data\hospital.mv.db
-Usuarios de demostracion creados. Ver: E:\nuevo\hospital-hc-PC7-ROLES\hospital\data\CREDENCIALES-DEMOSTRACION.txt
-Se crearon los 4 usuarios de los cuatro roles.
-Acceso con usuario y contrasena. Roles: ADMIN_GENERAL, DIGITADOR, ENFERMERA, DOCTOR.
-Servidor iniciado. Abre tu navegador en: http://localhost:8099/
-Plantillas: E:\nuevo\hospital-hc-PC7-ROLES\hospital\templates
-Estáticos:  E:\nuevo\hospital-hc-PC7-ROLES\hospital\static
-Presiona Ctrl+C para detener.
-Acceso concedido a admin (ADMIN_GENERAL) desde 127.0.0.1 a las 2026-10-04T23:01:13.155958400Z
-Acceso concedido a admin (ADMIN_GENERAL) desde 127.0.0.1 a las 2026-10-04T23:04:34.326023600Z
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>{{pageTitle}} · Hospital HC</title>
+<link rel="stylesheet" href="/static/css/estilo.css">
+<link rel="stylesheet" href="/static/css/seguridad.css">
+<link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+
+<main class="acc-page">
+
+  <!-- ---------- Panel de marca ---------- -->
+  <section class="acc-brand">
+    <div class="acc-logo">
+      <span class="acc-logo-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </span>
+      <span>Hospital<strong>HC</strong></span>
+    </div>
+
+    <div>
+      <h1 class="acc-brand-title">Historias clinicas protegidas por rol</h1>
+      <p class="acc-brand-copy">
+        Cada persona del hospital entra con su propia cuenta y solo ve y modifica
+        lo que su rol le permite. Cada accion queda registrada.
+      </p>
+
+      <ul class="acc-points">
+        <li>
+          <span class="acc-point-icon" aria-hidden="true">1</span>
+          <span><strong>Cuatro roles</strong> con permisos distintos sobre las mismas historias clinicas.</span>
+        </li>
+        <li>
+          <span class="acc-point-icon" aria-hidden="true">2</span>
+          <span>Contrasenas cifradas con <strong>PBKDF2</strong> y sesion con caducidad automatica.</span>
+        </li>
+        <li>
+          <span class="acc-point-icon" aria-hidden="true">3</span>
+          <span>Bloqueo automatico tras <strong>5 intentos</strong> de acceso fallidos.</span>
+        </li>
+        <li>
+          <span class="acc-point-icon" aria-hidden="true">4</span>
+          <span>Bitacora de accesos disponible para el administrador general.</span>
+        </li>
+      </ul>
+    </div>
+
+    <p class="acc-brand-foot">Sistema de uso interno · Los datos clinicos son confidenciales</p>
+  </section>
+
+  <!-- ---------- Panel del formulario ---------- -->
+  <section class="acc-panel">
+    <div class="acc-card">
+
+      <h2 class="acc-title">Iniciar sesion</h2>
+      <p class="acc-subtitle">Ingresa con el usuario y la contrasena que te entrego el administrador.</p>
+
+      {{#error}}
+      <div class="acc-alert acc-alert-error acc-alert-block" role="alert">
+        <span class="acc-alert-icon" aria-hidden="true">!</span>
+        <span>{{error}}</span>
+      </div>
+      {{/error}}
+
+      {{#exito}}
+      <div class="acc-alert acc-alert-ok acc-alert-block" role="status">
+        <span class="acc-alert-icon" aria-hidden="true">&check;</span>
+        <span>{{exito}}</span>
+      </div>
+      {{/exito}}
+
+      {{#aviso}}
+      <div class="acc-alert acc-alert-info acc-alert-block" role="status">
+        <span class="acc-alert-icon" aria-hidden="true">i</span>
+        <span>{{aviso}}</span>
+      </div>
+      {{/aviso}}
+
+      <form class="acc-form" method="post" action="/login" data-acc-form>
+        <input type="hidden" name="siguiente" value="{{siguiente}}">
+
+        <div class="acc-field">
+          <label for="username">Usuario</label>
+          <input class="acc-input" type="text" id="username" name="username"
+                 value="{{username}}" autocomplete="username" autocapitalize="none"
+                 spellcheck="false" required autofocus
+                 placeholder="admin, doctor, enfermera o digitador">
+        </div>
+
+        <div class="acc-field">
+          <label for="password">Contrasena</label>
+          <span class="acc-input-wrap">
+            <input class="acc-input has-toggle" type="password" id="password" name="password"
+                   autocomplete="current-password" required placeholder="Tu contrasena">
+            <button class="acc-toggle" type="button" data-acc-toggle="password" aria-label="Mostrar contrasena">Ver</button>
+          </span>
+        </div>
+
+        <button class="acc-btn acc-btn-primary acc-btn-block" type="submit" data-acc-enviar>
+          Entrar al sistema
+        </button>
+      </form>
+
+      {{#hayCuentasDemo}}
+      <p class="acc-demo-title">Cuentas de demostracion</p>
+      <div class="acc-demo-grid">
+        {{#cuentasDemo}}
+        <button class="acc-demo" type="button" data-acc-demo="{{username}}"
+                data-acc-password="{{password}}" aria-pressed="false">
+          <span class="acc-demo-user">{{username}}</span>
+          <span class="acc-demo-role">{{rol}}</span>
+        </button>
+        {{/cuentasDemo}}
+      </div>
+      <p class="acc-demo-note">
+        Pulsa una cuenta para rellenar el formulario. Cambia estas contrasenas antes de usar el sistema con datos reales.
+      </p>
+      {{/hayCuentasDemo}}
+
+      <p class="acc-foot">
+        Tu sesion se cierra sola tras 30 minutos sin actividad.
+      </p>
+
+    </div>
+  </section>
+
+</main>
+
+<script src="/static/js/seguridad.js"></script>
+</body>
+</html>

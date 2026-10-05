@@ -1,4 +1,5 @@
 package com.hospital.db;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -8,7 +9,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Conexion a la base de datos del proyecto
+ * Conexión a la base de datos H2 (embebida, en un archivo local) y creación
+ * del esquema al arrancar. El DDL está embebido aquí (no se lee de un archivo
+ * externo) para que la app no dependa de encontrar database/schema.sql en
+ * ningún directorio en particular; ese archivo igual se entrega en el
+ * proyecto como documentación de referencia y ambos se mantienen idénticos.
  */
 public final class Db {
 

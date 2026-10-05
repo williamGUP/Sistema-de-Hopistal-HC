@@ -15,99 +15,74 @@ import static com.hospital.web.PacienteController.enc;
 
 public class EnfermedadController {
 
-    private final EnfermedadDao enfermedadDao;
-    private final PacienteDao pacienteDao;
-    private final TemplateEngine templateEngine;
+    private final EnfermedadDao enfermedadDao = new EnfermedadDao();
+    private final PacienteDao pacienteDao = new PacienteDao();
+    private final TemplateEngine engine;
 
-    public EnfermedadController(TemplateEngine templateEngine) {
-        this.templateEngine = templateEngine;
-        this.enfermedadDao = new EnfermedadDao();
-        this.pacienteDao = new PacienteDao();
+    public EnfermedadController(TemplateEngine engine) {
+        this.engine = engine;
     }
 
-    public void registrarRutas(Router router) {
-        router.get("/pacientes/{id}/enfermedades/nueva", this::mostrarFormularioNuevaEnfermedad);
-        router.post("/pacientes/{id}/enfermedades/nueva", this::procesarGuardado);
-        router.post("/enfermedades/{id}/eliminar", this::eliminarEnfermedad);
+    public void register(Router router) {
+        router.get("/pacientes/{id}/enfermedades/nueva", this::form);
+        router.post("/pacientes/{id}/enfermedades/nueva", this::guardar);
+        router.post("/enfermedades/{id}/eliminar", this::eliminar);
     }
 
-    private void mostrarFormularioNuevaEnfermedad(RequestContext context) throws Exception {
-        long idPaciente = context.pathLong("id");
-        Optional<Paciente> pacienteOpt = pacienteDao.buscarPorId(idPaciente);
+    private void form(RequestContext ctx) throws Exception {
+        long pacienteId = ctx.pathLong("id");
+        Optional<Paciente> op = pacienteDao.buscarPorId(pacienteId);
+        if (op.isEmpty()) { ctx.redirect("/pacientes?error=" + enc("Paciente no encontrado.")); return; }
 
-        if (pacienteOpt.isEmpty()) {
-            context.redirect("/pacientes?error=" + enc("Paciente no encontrado."));
+        Map<String, Object> data = Views.baseData("Nueva enfermedad / antecedente", "pacientes", ctx);
+        data.put("paciente", Views.pacienteResumen(op.get()));
+        data.put("nombre", "");
+        data.put("fechaDiagnostico", "");
+        data.put("observaciones", "");
+        data.put("estadoOptionsHtml", Catalogos.optionsHtml(Catalogos.ESTADO_ENFERMEDAD, "ACTIVA"));
+        ctx.html(200, engine.render("enfermedad-form", data));
+    }
+
+    private void guardar(RequestContext ctx) throws Exception {
+        long pacienteId = ctx.pathLong("id");
+        Optional<Paciente> op = pacienteDao.buscarPorId(pacienteId);
+        if (op.isEmpty()) { ctx.redirect("/pacientes?error=" + enc("Paciente no encontrado.")); return; }
+
+        String nombre = ctx.param("nombre", "").trim();
+        String estado = ctx.param("estado", "ACTIVA");
+
+        if (nombre.isEmpty() || !Catalogos.isValid(Catalogos.ESTADO_ENFERMEDAD, estado)) {
+            Map<String, Object> data = Views.baseData("Nueva enfermedad / antecedente", "pacientes", ctx);
+            data.put("paciente", Views.pacienteResumen(op.get()));
+            data.put("flashError", "Indica el nombre de la enfermedad y un estado válido.");
+            data.put("nombre", nombre);
+            data.put("fechaDiagnostico", ctx.param("fechaDiagnostico", ""));
+            data.put("observaciones", ctx.param("observaciones", ""));
+            data.put("estadoOptionsHtml", Catalogos.optionsHtml(Catalogos.ESTADO_ENFERMEDAD, estado));
+            ctx.html(200, engine.render("enfermedad-form", data));
             return;
         }
 
-        Map<String, Object> modelo = Views.baseData("Nueva enfermedad / antecedente", "pacientes", context);
-        modelo.put("paciente", Views.pacienteResumen(pacienteOpt.get()));
-        modelo.put("nombre", "");
-        modelo.put("fechaDiagnostico", "");
-        modelo.put("observaciones", "");
-        modelo.put("estadoOptionsHtml", Catalogos.generarOpcionesHtml(Catalogos.ESTADO_ENFERMEDAD, "ACTIVA"));
+        Enfermedad e = new Enfermedad();
+        e.setPacienteId(pacienteId);
+        e.setNombre(nombre);
+        String fecha = ctx.param("fechaDiagnostico", "");
+        if (!fecha.isBlank()) {
+            try { e.setFechaDiagnostico(LocalDate.parse(fecha)); } catch (DateTimeParseException ignored) {}
+        }
+        e.setEstado(estado);
+        e.setObservaciones(ctx.param("observaciones", "").trim());
+        enfermedadDao.crear(e);
 
-        context.html(200, templateEngine.render("enfermedad-form", modelo));
+        ctx.redirect("/pacientes/" + pacienteId + "?ok=" + enc("Enfermedad registrada correctamente."));
     }
 
-    private void procesarGuardado(RequestContext context) throws Exception {
-        long idPaciente = context.pathLong("id");
-        Optional<Paciente> pacienteOpt = pacienteDao.buscarPorId(idPaciente);
-
-        if (pacienteOpt.isEmpty()) {
-            context.redirect("/pacientes?error=" + enc("Paciente no encontrado."));
-            return;
-        }
-
-        String nombre = context.param("nombre", "").trim();
-        String estado = context.param("estado", "ACTIVA");
-
-        if (nombre.isEmpty() || !Catalogos.esValido(Catalogos.ESTADO_ENFERMEDAD, estado)) {
-            Map<String, Object> modelo = Views.baseData("Nueva enfermedad / antecedente", "pacientes", context);
-            modelo.put("paciente", Views.pacienteResumen(pacienteOpt.get()));
-            modelo.put("flashError", "Indica el nombre de la enfermedad y un estado válido.");
-            modelo.put("nombre", nombre);
-            modelo.put("fechaDiagnostico", context.param("fechaDiagnostico", ""));
-            modelo.put("observaciones", context.param("observaciones", ""));
-            modelo.put("estadoOptionsHtml", Catalogos.generarOpcionesHtml(Catalogos.ESTADO_ENFERMEDAD, estado));
-
-            context.html(200, templateEngine.render("enfermedad-form", modelo));
-            return;
-        }
-
-        Enfermedad nuevaEnfermedad = new Enfermedad();
-        nuevaEnfermedad.setPacienteId(idPaciente);
-        nuevaEnfermedad.setNombre(nombre);
-
-        String entradaFecha = context.param("fechaDiagnostico", "");
-        if (!entradaFecha.isBlank()) {
-            try {
-                nuevaEnfermedad.setFechaDiagnostico(LocalDate.parse(entradaFecha));
-            } catch (DateTimeParseException ignored) {
-                // Si el formato es inválido, se omite el seteo de la fecha
-            }
-        }
-
-        nuevaEnfermedad.setEstado(estado);
-        nuevaEnfermedad.setObservaciones(context.param("observaciones", "").trim());
-
-        enfermedadDao.crear(nuevaEnfermedad);
-
-        context.redirect("/pacientes/" + idPaciente + "?ok=" + enc("Enfermedad registrada correctamente."));
-    }
-
-    private void eliminarEnfermedad(RequestContext context) throws Exception {
-        long idEnfermedad = context.pathLong("id");
-        Optional<Enfermedad> enfermedadOpt = enfermedadDao.buscarPorId(idEnfermedad);
-
-        if (enfermedadOpt.isEmpty()) {
-            context.redirect("/pacientes?error=" + enc("Registro no encontrado."));
-            return;
-        }
-
-        long idPaciente = enfermedadOpt.get().getPacienteId();
-        enfermedadDao.eliminar(idEnfermedad);
-
-        context.redirect("/pacientes/" + idPaciente + "?ok=" + enc("Enfermedad eliminada."));
+    private void eliminar(RequestContext ctx) throws Exception {
+        long id = ctx.pathLong("id");
+        Optional<Enfermedad> e = enfermedadDao.buscarPorId(id);
+        if (e.isEmpty()) { ctx.redirect("/pacientes?error=" + enc("Registro no encontrado.")); return; }
+        long pacienteId = e.get().getPacienteId();
+        enfermedadDao.eliminar(id);
+        ctx.redirect("/pacientes/" + pacienteId + "?ok=" + enc("Enfermedad eliminada."));
     }
 }

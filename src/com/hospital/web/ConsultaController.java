@@ -8,7 +8,6 @@ import com.hospital.template.TemplateEngine;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -16,107 +15,86 @@ import static com.hospital.web.PacienteController.enc;
 
 public class ConsultaController {
 
-    private final ConsultaDao consultaDao;
-    private final PacienteDao pacienteDao;
-    private final TemplateEngine templateEngine;
+    private final ConsultaDao consultaDao = new ConsultaDao();
+    private final PacienteDao pacienteDao = new PacienteDao();
+    private final TemplateEngine engine;
 
-    public ConsultaController(TemplateEngine templateEngine) {
-        this.templateEngine = templateEngine;
-        this.consultaDao = new ConsultaDao();
-        this.pacienteDao = new PacienteDao();
+    public ConsultaController(TemplateEngine engine) {
+        this.engine = engine;
     }
 
-    public void registrarRutas(Router router) {
-        router.get("/pacientes/{id}/consultas/nueva", this::mostrarFormularioNuevaConsulta);
-        router.post("/pacientes/{id}/consultas/nueva", this::procesarGuardado);
-        router.post("/consultas/{id}/eliminar", this::eliminarConsulta);
+    public void register(Router router) {
+        router.get("/pacientes/{id}/consultas/nueva", this::form);
+        router.post("/pacientes/{id}/consultas/nueva", this::guardar);
+        router.post("/consultas/{id}/eliminar", this::eliminar);
     }
 
-    private void mostrarFormularioNuevaConsulta(RequestContext context) throws Exception {
-        long idPaciente = context.pathLong("id");
-        Optional<Paciente> pacienteOpt = pacienteDao.buscarPorId(idPaciente);
+    private void form(RequestContext ctx) throws Exception {
+        long pacienteId = ctx.pathLong("id");
+        Optional<Paciente> op = pacienteDao.buscarPorId(pacienteId);
+        if (op.isEmpty()) { ctx.redirect("/pacientes?error=" + enc("Paciente no encontrado.")); return; }
 
-        if (pacienteOpt.isEmpty()) {
-            context.redirect("/pacientes?error=" + enc("Paciente no encontrado."));
-            return;
-        }
-
-        Map<String, Object> modelo = Views.baseData("Nueva consulta", "pacientes", context);
-        modelo.put("paciente", Views.pacienteResumen(pacienteOpt.get()));
-        
-        // Inicialización de campos vacíos para el formulario
-        String[] campos = {"motivo", "medico", "sintomas", "diagnostico", "tratamiento", "observaciones"};
-        for (String campo : campos) {
-            modelo.put(campo, "");
-        }
-
-        context.html(200, templateEngine.render("consulta-form", modelo));
+        Map<String, Object> data = Views.baseData("Nueva consulta", "pacientes", ctx);
+        data.put("paciente", Views.pacienteResumen(op.get()));
+        data.put("motivo", "");
+        data.put("medico", "");
+        data.put("sintomas", "");
+        data.put("diagnostico", "");
+        data.put("tratamiento", "");
+        data.put("observaciones", "");
+        ctx.html(200, engine.render("consulta-form", data));
     }
 
-    private void procesarGuardado(RequestContext context) throws Exception {
-        long idPaciente = context.pathLong("id");
-        Optional<Paciente> pacienteOpt = pacienteDao.buscarPorId(idPaciente);
+    private void guardar(RequestContext ctx) throws Exception {
+        long pacienteId = ctx.pathLong("id");
+        Optional<Paciente> op = pacienteDao.buscarPorId(pacienteId);
+        if (op.isEmpty()) { ctx.redirect("/pacientes?error=" + enc("Paciente no encontrado.")); return; }
 
-        if (pacienteOpt.isEmpty()) {
-            context.redirect("/pacientes?error=" + enc("Paciente no encontrado."));
-            return;
-        }
-
-        String motivo = context.param("motivo", "").trim();
-        String sintomas = context.param("sintomas", "").trim();
-        String diagnostico = context.param("diagnostico", "").trim();
+        String motivo = ctx.param("motivo", "").trim();
+        String sintomas = ctx.param("sintomas", "").trim();
+        String diagnostico = ctx.param("diagnostico", "").trim();
 
         if (motivo.isEmpty() || sintomas.isEmpty() || diagnostico.isEmpty()) {
-            Map<String, Object> modelo = Views.baseData("Nueva consulta", "pacientes", context);
-            modelo.put("paciente", Views.pacienteResumen(pacienteOpt.get()));
-            modelo.put("flashError", "Completa al menos motivo, síntomas y diagnóstico.");
-            modelo.put("medico", context.param("medico", "").trim());
-            modelo.put("motivo", motivo);
-            modelo.put("sintomas", sintomas);
-            modelo.put("diagnostico", diagnostico);
-            modelo.put("tratamiento", context.param("tratamiento", "").trim());
-            modelo.put("observaciones", context.param("observaciones", "").trim());
-
-            context.html(200, templateEngine.render("consulta-form", modelo));
+            Map<String, Object> data = Views.baseData("Nueva consulta", "pacientes", ctx);
+            data.put("paciente", Views.pacienteResumen(op.get()));
+            data.put("flashError", "Completa al menos motivo, síntomas y diagnóstico.");
+            data.put("medico", ctx.param("medico", ""));
+            data.put("motivo", motivo);
+            data.put("sintomas", sintomas);
+            data.put("diagnostico", diagnostico);
+            data.put("tratamiento", ctx.param("tratamiento", ""));
+            data.put("observaciones", ctx.param("observaciones", ""));
+            ctx.html(200, engine.render("consulta-form", data));
             return;
         }
 
-        Consulta nuevaConsulta = new Consulta();
-        nuevaConsulta.setPacienteId(idPaciente);
-
-        String entradaFecha = context.param("fecha", "");
-        LocalDateTime fechaConsulta;
+        Consulta c = new Consulta();
+        c.setPacienteId(pacienteId);
+        String fechaStr = ctx.param("fecha", "");
+        LocalDateTime fecha;
         try {
-            fechaConsulta = entradaFecha.isBlank() ? LocalDateTime.now() : LocalDateTime.parse(entradaFecha);
+            fecha = fechaStr.isBlank() ? LocalDateTime.now() : LocalDateTime.parse(fechaStr);
         } catch (DateTimeParseException e) {
-            fechaConsulta = LocalDateTime.now();
+            fecha = LocalDateTime.now();
         }
+        c.setFecha(fecha);
+        c.setMedico(ctx.param("medico", "").trim());
+        c.setMotivo(motivo);
+        c.setSintomas(sintomas);
+        c.setDiagnostico(diagnostico);
+        c.setTratamiento(ctx.param("tratamiento", "").trim());
+        c.setObservaciones(ctx.param("observaciones", "").trim());
+        consultaDao.crear(c);
 
-        nuevaConsulta.setFecha(fechaConsulta);
-        nuevaConsulta.setMedico(context.param("medico", "").trim());
-        nuevaConsulta.setMotivo(motivo);
-        nuevaConsulta.setSintomas(sintomas);
-        nuevaConsulta.setDiagnostico(diagnostico);
-        nuevaConsulta.setTratamiento(context.param("tratamiento", "").trim());
-        nuevaConsulta.setObservaciones(context.param("observaciones", "").trim());
-
-        consultaDao.crear(nuevaConsulta);
-
-        context.redirect("/pacientes/" + idPaciente + "?ok=" + enc("Consulta registrada correctamente."));
+        ctx.redirect("/pacientes/" + pacienteId + "?ok=" + enc("Consulta registrada correctamente."));
     }
 
-    private void eliminarConsulta(RequestContext context) throws Exception {
-        long idConsulta = context.pathLong("id");
-        Optional<Consulta> consultaOpt = consultaDao.buscarPorId(idConsulta);
-
-        if (consultaOpt.isEmpty()) {
-            context.redirect("/pacientes?error=" + enc("Consulta no encontrada."));
-            return;
-        }
-
-        long idPaciente = consultaOpt.get().getPacienteId();
-        consultaDao.eliminar(idConsulta);
-
-        context.redirect("/pacientes/" + idPaciente + "?ok=" + enc("Consulta eliminada."));
+    private void eliminar(RequestContext ctx) throws Exception {
+        long id = ctx.pathLong("id");
+        Optional<Consulta> c = consultaDao.buscarPorId(id);
+        if (c.isEmpty()) { ctx.redirect("/pacientes?error=" + enc("Consulta no encontrada.")); return; }
+        long pacienteId = c.get().getPacienteId();
+        consultaDao.eliminar(id);
+        ctx.redirect("/pacientes/" + pacienteId + "?ok=" + enc("Consulta eliminada."));
     }
 }

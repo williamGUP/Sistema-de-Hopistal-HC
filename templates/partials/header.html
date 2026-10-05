@@ -5,9 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{pageTitle}} · Hospital HC</title>
 <link rel="stylesheet" href="/static/css/estilo.css">
+<link rel="stylesheet" href="/static/css/seguridad.css">
 <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
 </head>
 <body>
+<a class="acc-skip" href="#contenido">Saltar al contenido</a>
 <header class="topbar">
   <div class="topbar-inner">
     <a class="brand" href="/">
@@ -19,8 +21,15 @@
       <a href="/pacientes" class="{{#activePacientes}}active{{/activePacientes}}">Pacientes</a>
       <a href="/pacientes/nuevo" class="nav-cta {{#activeNuevo}}active{{/activeNuevo}}">+ Nuevo paciente</a>
     </nav>
+    {{> usernav}}
   </div>
 </header>
-<main class="container">
+<main class="container" id="contenido">
+  {{#avisoContrasenaDemo}}
+  <div class="flash flash-error">
+    <strong>Atencion:</strong> tu cuenta sigue con la contrasena de demostracion.
+    <a href="/mi-cuenta">Cambiala ahora</a> para proteger los datos clinicos.
+  </div>
+  {{/avisoContrasenaDemo}}
   {{#flashOk}}<div class="flash flash-ok">{{flashOk}}</div>{{/flashOk}}
   {{#flashError}}<div class="flash flash-error">{{flashError}}</div>{{/flashError}}

@@ -167,3 +167,4 @@ public class PacienteDao {
         p.setFechaRegistro(fr == null ? null : fr.toLocalDateTime());
         return p;
     }
+}
