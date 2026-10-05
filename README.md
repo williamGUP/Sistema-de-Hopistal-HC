@@ -183,21 +183,33 @@ hospital/
 Con el servidor arrancado:
 
 ```
-java -jar hospital.jar 8099
-powershell -ExecutionPolicy Bypass -File test\TestAccesoRoles.ps1 -Base http://localhost:8099
+java -jar hospital.jar 8080
+powershell -ExecutionPolicy Bypass -File test\TestCrudJdbc.ps1
+powershell -ExecutionPolicy Bypass -File test\TestAccesoRoles.ps1
 ```
 
-Son **71 comprobaciones automáticas**: protección de rutas sin sesión, permisos de los cuatro roles, cabeceras de seguridad, CSRF, bloqueo por intentos fallidos, cierre de sesión, cambio de contraseña, administración de usuarios y registro en la bitácora.
+Son **94 comprobaciones automáticas**:
+
+| Suite | Casos | Qué verifica |
+|---|---:|---|
+| `test/TestCrudJdbc.ps1` | 23 | Operaciones CRUD sobre las cuatro tablas, validación de datos no válidos y control de errores de conexión |
+| `test/TestAccesoRoles.ps1` | 71 | Protección de rutas, permisos de los cuatro roles, cabeceras de seguridad, CSRF, bloqueo por fuerza bruta, cierre de sesión, cambio de contraseña y administración de usuarios |
+
+El detalle de cada caso, con los datos usados y el resultado obtenido, está en [`docs/INFORME_DE_PRUEBAS.md`](docs/INFORME_DE_PRUEBAS.md).
 
 ---
 
 ## Documentación
 
+- **Matriz de trazabilidad**: [`docs/MATRIZ_RASTREABILIDAD.md`](docs/MATRIZ_RASTREABILIDAD.md) — los 40 requerimientos funcionales y 10 no funcionales con historia de usuario, criterios de aceptación, estado y evidencia.
+- **Integración JDBC y CRUD**: [`docs/JDBC_Y_CRUD.md`](docs/JDBC_Y_CRUD.md) — parámetros de conexión, sentencias SQL de las cuatro operaciones y buenas prácticas aplicadas.
+- **Informe de pruebas**: [`docs/INFORME_DE_PRUEBAS.md`](docs/INFORME_DE_PRUEBAS.md) — metodología, 94 casos con resultados reales y defectos encontrados.
 - **Guía de acceso y roles**: [`docs/GUIA_ROLES_Y_ACCESO.md`](docs/GUIA_ROLES_Y_ACCESO.md) — cómo entrar, qué puede hacer cada rol, cómo cambiar contraseñas y qué medidas protegen las historias clínicas.
 - **Matriz de permisos**: [`docs/MATRIZ_PERMISOS.md`](docs/MATRIZ_PERMISOS.md) — qué acción CRUD puede hacer cada rol sobre cada módulo, y qué ruta exige qué permiso.
+- **Tabla de aportes individuales**: [`APORTES_INDIVIDUALES.md`](APORTES_INDIVIDUALES.md) — distribución del trabajo con evidencia del historial de Git.
 - **Manual de usuario**: [`docs/MANUAL_USUARIO.md`](docs/MANUAL_USUARIO.md) — cómo registrar pacientes, buscar historias clínicas y agregar consultas, enfermedades y operaciones.
 - **Diccionario de datos**: [`docs/DICCIONARIO_DATOS.md`](docs/DICCIONARIO_DATOS.md) — cada tabla y campo de la base de datos.
-- **Esquema de seguridad**: [`database/seguridad.sql`](database/seguridad.sql) — tabla de usuarios y bitácora.
+- **Esquemas SQL**: [`database/schema.sql`](database/schema.sql) y [`database/seguridad.sql`](database/seguridad.sql).
 - **Flujograma del proceso clínico**: [`docs/diagramas/flujograma.png`](docs/diagramas/flujograma.png)
 - **Diagrama entidad-relación**: [`docs/diagramas/entidad-relacion.png`](docs/diagramas/entidad-relacion.png)
 
