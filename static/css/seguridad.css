@@ -1,0 +1,793 @@
+/* ==========================================================================
+   Hospital HC — hoja de estilos del subsistema de acceso y roles.
+   Se carga despues de estilo.css y solo define componentes propios del login,
+   del menu de usuario, de la matriz de permisos y de la bitacora, respetando
+   la paleta corporativa ya existente (teal + grises).
+   ========================================================================== */
+
+:root {
+  --violet-700: #6d28d9;
+  --violet-100: #ede9fe;
+  --sky-700: #0369a1;
+  --sky-100: #e0f2fe;
+  --rose-700: #be123c;
+  --rose-100: #ffe4e6;
+  --slate-100: #f1f5f9;
+  --slate-600: #64748b;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+}
+
+/* ---------- Foco visible y enlace de salto ---------- */
+
+.acc-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 50;
+  padding: 10px 16px;
+  background: var(--white);
+  color: var(--teal-700);
+  border-radius: 0 0 10px 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.acc-skip:focus { left: 0; }
+
+.acc-focus:focus-visible,
+.acc-btn:focus-visible,
+.acc-demo:focus-visible,
+.acc-menu summary:focus-visible,
+.acc-nav a:focus-visible {
+  outline: 2px solid var(--teal-500);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ==========================================================================
+   1. Pantalla de acceso
+   ========================================================================== */
+
+.acc-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  background: var(--bg);
+}
+
+.acc-brand {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-12);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-12);
+  background: linear-gradient(155deg, var(--teal-900) 0%, var(--teal-700) 58%, var(--teal-600) 100%);
+  color: #fff;
+}
+
+/* Textura sutil: rejilla clinica y dos brillos suaves que dan profundidad. */
+.acc-brand::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at 28% 18%, #000 0%, transparent 76%);
+}
+
+.acc-brand::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(520px 320px at 82% 8%, rgba(23, 168, 157, 0.35), transparent 70%),
+    radial-gradient(420px 300px at 8% 92%, rgba(11, 61, 58, 0.55), transparent 72%);
+  pointer-events: none;
+}
+
+.acc-brand > * { position: relative; z-index: 1; }
+
+.acc-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.acc-logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.acc-brand-title {
+  font-size: 2.1rem;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-3);
+  max-width: 22ch;
+  color: #fff;
+}
+
+.acc-brand-copy {
+  margin: 0;
+  max-width: 46ch;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.95rem;
+}
+
+.acc-points {
+  list-style: none;
+  margin: var(--space-8) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.acc-points li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.acc-point-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 0.72rem;
+}
+
+.acc-brand-foot {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.68);
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  padding-top: var(--space-4);
+}
+
+/* ---------- Panel del formulario ---------- */
+
+.acc-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+}
+
+.acc-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.acc-title {
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-1);
+}
+
+.acc-subtitle {
+  margin: 0 0 var(--space-6);
+  color: var(--ink-500);
+  font-size: 0.92rem;
+}
+
+.acc-form { display: grid; gap: var(--space-4); }
+
+.acc-field { display: grid; gap: var(--space-1); }
+
+.acc-field label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-700);
+}
+
+.acc-input-wrap { position: relative; display: flex; align-items: center; }
+
+.acc-input {
+  width: 100%;
+  padding: 11px var(--space-3);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  font: inherit;
+  font-size: 0.94rem;
+  color: var(--ink-900);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.acc-input::placeholder { color: var(--ink-300); }
+
+.acc-input:hover { border-color: var(--ink-300); }
+
+.acc-input:focus {
+  outline: none;
+  border-color: var(--teal-500);
+  box-shadow: 0 0 0 3px var(--teal-100);
+}
+
+.acc-input.has-toggle { padding-right: 72px; }
+
+.acc-toggle {
+  position: absolute;
+  right: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-500);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.acc-toggle:hover { background: var(--slate-100); color: var(--teal-700); }
+
+.acc-field-error input { border-color: #e8b4ad; }
+
+.acc-help { font-size: 0.78rem; color: var(--ink-500); }
+
+.acc-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.88rem;
+  color: var(--ink-900);
+  cursor: pointer;
+}
+
+.acc-check input { width: 16px; height: 16px; accent-color: var(--teal-700); cursor: pointer; }
+
+/* ---------- Botones ---------- */
+
+.acc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 11px var(--space-4);
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.06s ease;
+}
+
+.acc-btn-primary { background: var(--teal-700); color: #fff; }
+.acc-btn-primary:hover { background: var(--teal-600); }
+.acc-btn-primary:active { transform: translateY(1px); }
+
+.acc-btn-block { width: 100%; }
+
+.acc-btn-secondary {
+  background: var(--white);
+  border-color: var(--line);
+  color: var(--ink-900);
+}
+.acc-btn-secondary:hover { background: var(--bg); }
+
+.acc-btn-danger { background: var(--white); border-color: #e8b4ad; color: var(--red-600); }
+.acc-btn-danger:hover { background: var(--red-100); }
+
+.acc-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+
+.acc-btn.is-loading { position: relative; color: transparent; }
+.acc-btn.is-loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  animation: acc-giro 0.7s linear infinite;
+}
+
+@keyframes acc-giro { to { transform: rotate(360deg); } }
+
+/* ---------- Avisos ---------- */
+
+.acc-alert {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  border: 1px solid;
+}
+
+.acc-alert-icon { flex: none; font-weight: 700; }
+.acc-alert-block { margin-bottom: var(--space-4); }
+.acc-alert-center { justify-content: center; text-align: center; }
+/* Necesario porque .acc-alert define display:flex, lo que anula el atributo hidden. */
+.acc-alert[hidden] { display: none; }
+.acc-alert-error { background: var(--red-100); color: var(--red-600); border-color: #e8b4ad; }
+.acc-alert-ok { background: var(--teal-100); color: var(--teal-900); border-color: var(--teal-500); }
+.acc-alert-info { background: var(--sky-100); color: var(--sky-700); border-color: #bae6fd; }
+
+/* ---------- Cuentas de demostracion ---------- */
+
+.acc-demo-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-8) 0 var(--space-3);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+}
+
+.acc-demo-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.acc-demo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.acc-demo {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  padding: 10px var(--space-3);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.acc-demo:hover { border-color: var(--teal-500); background: var(--teal-50); }
+.acc-demo[aria-pressed="true"] { border-color: var(--teal-700); background: var(--teal-100); }
+
+.acc-demo-user {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink-900);
+  font-variant-numeric: tabular-nums;
+}
+
+.acc-demo-role { font-size: 0.74rem; color: var(--ink-500); }
+
+.acc-demo-note {
+  margin: var(--space-3) 0 0;
+  font-size: 0.76rem;
+  color: var(--ink-500);
+}
+
+.acc-foot {
+  margin-top: var(--space-6);
+  font-size: 0.76rem;
+  color: var(--ink-500);
+  text-align: center;
+}
+
+/* ==========================================================================
+   2. Menu de usuario en la barra superior
+   ========================================================================== */
+
+.acc-user { margin-left: auto; }
+
+.acc-menu { position: relative; margin-left: auto; }
+
+@media (max-width: 640px) {
+  /* En movil el menu baja a su propia fila y ocupa el ancho disponible. */
+  .acc-menu {
+    margin-left: 0;
+    width: 100%;
+    order: 3;
+  }
+
+  .acc-menu > summary { justify-content: flex-start; }
+  .acc-user-name { display: block; }
+  .acc-menu-panel { left: 0; right: 0; min-width: 0; }
+}
+
+.acc-menu > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 5px 10px 5px 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transition: background-color 0.15s ease;
+}
+
+.acc-menu > summary::-webkit-details-marker { display: none; }
+.acc-menu > summary:hover { background: rgba(255, 255, 255, 0.2); }
+
+.acc-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.acc-user-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  max-width: 15ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.acc-user-role { font-size: 0.72rem; color: rgba(255, 255, 255, 0.78); }
+
+.acc-menu-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  min-width: 268px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.14);
+  padding: var(--space-2);
+  z-index: 20;
+}
+
+.acc-menu-head {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--space-2);
+}
+
+.acc-menu-name { font-size: 0.9rem; font-weight: 600; }
+.acc-menu-user { font-size: 0.78rem; color: var(--ink-500); }
+
+.acc-menu-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 9px var(--space-3);
+  border-radius: 9px;
+  font-size: 0.87rem;
+  color: var(--ink-900);
+  text-decoration: none;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.acc-menu-link:hover { background: var(--teal-50); text-decoration: none; }
+.acc-menu-sep { height: 1px; background: var(--line); margin: var(--space-2) 0; }
+
+/* ---------- Chips de rol ---------- */
+
+.rol {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.rol-ADMIN_GENERAL { background: var(--violet-100); color: var(--violet-700); border-color: #ddd6fe; }
+.rol-DIGITADOR { background: var(--teal-100); color: var(--teal-900); border-color: #99e6e0; }
+.rol-ENFERMERA { background: var(--sky-100); color: var(--sky-700); border-color: #bae6fd; }
+.rol-DOCTOR { background: var(--rose-100); color: var(--rose-700); border-color: #fecdd3; }
+.rol-SIN_ROL { background: var(--slate-100); color: var(--slate-600); border-color: var(--line); }
+
+/* Barra lateral de solo administracion */
+.acc-admin-link {
+  color: rgba(255, 255, 255, 0.85);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.acc-admin-link:hover { background: rgba(255, 255, 255, 0.12); color: #fff; text-decoration: none; }
+
+/* ==========================================================================
+   3. Pantalla de acceso restringido (403)
+   ========================================================================== */
+
+.acc-deny {
+  max-width: 620px;
+  margin: var(--space-12) auto;
+  text-align: center;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: var(--space-12) var(--space-8);
+  box-shadow: var(--shadow);
+}
+
+.acc-deny-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--amber-100);
+  color: var(--amber-600);
+  font-size: 1.5rem;
+  margin-bottom: var(--space-4);
+}
+
+.acc-deny h1 { letter-spacing: -0.02em; }
+
+.acc-deny-path {
+  display: inline-block;
+  margin-top: var(--space-2);
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: var(--slate-100);
+  color: var(--ink-700);
+  font-size: 0.78rem;
+  font-family: Consolas, "SF Mono", Menlo, monospace;
+  word-break: break-all;
+}
+
+.acc-deny-roles { text-align: left; margin: var(--space-6) 0 0; }
+
+.acc-deny-roles h2 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-500);
+  margin-bottom: var(--space-3);
+}
+
+.acc-deny-roles ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+
+.acc-deny-roles li {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3);
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  font-size: 0.86rem;
+}
+
+.acc-deny-roles span { color: var(--ink-500); font-size: 0.8rem; }
+
+.acc-deny-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  margin-top: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.acc-inline-form { margin: 0; }
+
+/* ==========================================================================
+   4. Matriz de permisos, sesiones y estadisticas
+   ========================================================================== */
+
+.acc-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+
+.acc-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.acc-stat {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: var(--space-4);
+}
+
+.acc-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.acc-stat-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-500);
+}
+
+.acc-stat.is-ok .acc-stat-value { color: var(--teal-700); }
+.acc-stat.is-bad .acc-stat-value { color: var(--red-600); }
+.acc-stat.is-warn .acc-stat-value { color: var(--amber-600); }
+.acc-stat.is-muted .acc-stat-value { color: var(--ink-500); }
+
+.acc-perm-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 200px) 1fr;
+  align-items: baseline;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.86rem;
+}
+
+.acc-perm-row:last-child { border-bottom: 0; }
+
+.acc-mt-4 { margin-top: var(--space-4); }
+.acc-mt-6 { margin-top: var(--space-6); }
+
+.acc-perm-acciones { line-height: 1.9; }
+
+.acc-perm-name { font-weight: 600; color: var(--ink-900); }
+.acc-perm-count { color: var(--ink-500); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+
+.acc-yes { color: var(--teal-700); font-weight: 700; }
+.acc-no { color: var(--ink-300); }
+
+.acc-si { color: var(--teal-700); font-weight: 700; }
+.acc-no { color: var(--ink-300); }
+
+.acc-sesion-actual {
+  border: 1px solid var(--teal-500);
+  background: var(--teal-50);
+}
+
+/* ---------- Fuerza de la contrasena ---------- */
+
+.acc-strength { display: grid; gap: 4px; margin-top: 2px; }
+
+.acc-strength-bars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+
+.acc-strength-bars span {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+  transition: background-color 0.2s ease;
+}
+
+.acc-strength[data-nivel="1"] .acc-strength-bars span:nth-child(1) { background: var(--red-600); }
+.acc-strength[data-nivel="2"] .acc-strength-bars span:nth-child(-n+2) { background: var(--amber-600); }
+.acc-strength[data-nivel="3"] .acc-strength-bars span:nth-child(-n+3) { background: var(--teal-500); }
+.acc-strength[data-nivel="4"] .acc-strength-bars span { background: var(--teal-700); }
+
+.acc-strength-text { font-size: 0.76rem; color: var(--ink-500); }
+
+/* ---------- Tabla de bitacora ---------- */
+
+.acc-mono { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 0.82rem; }
+
+.acc-pill {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.acc-pill.is-ok { background: var(--teal-100); color: var(--teal-900); border-color: #99e6e0; }
+.acc-pill.is-bad { background: var(--red-100); color: var(--red-600); border-color: #e8b4ad; }
+.acc-pill.is-muted { background: var(--slate-100); color: var(--slate-600); border-color: var(--line); }
+
+.acc-filters {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.acc-filters .acc-field { min-width: 200px; }
+
+.acc-table-scroll { overflow-x: auto; }
+
+/* ---------- Tabla de usuarios ---------- */
+
+.tabla-usuarios { min-width: 720px; }
+
+.tabla-auditoria { min-width: 880px; }
+.tabla-auditoria td:first-child { white-space: nowrap; }
+.tabla-auditoria td:last-child { min-width: 15ch; }
+
+.tabla-usuarios th:first-child,
+.tabla-usuarios td:first-child { width: 1%; white-space: nowrap; }
+
+.tabla-usuarios th:nth-child(2) { width: 22%; }
+
+.acc-centro { text-align: center; }
+
+.usuarios-rol { display: grid; gap: 4px; justify-items: start; max-width: 34ch; }
+.usuarios-rol .record-meta { line-height: 1.45; }
+
+.usuarios-acciones {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+/* ---------- Estados vacios ---------- */
+
+.acc-empty { text-align: center; padding: var(--space-8) var(--space-4); color: var(--ink-500); }
+.acc-empty-title { font-weight: 600; color: var(--ink-900); margin-bottom: var(--space-1); }
+
+/* ==========================================================================
+   5. Adaptacion a pantallas pequenas
+   ========================================================================== */
+
+@media (max-width: 900px) {
+  .acc-page { grid-template-columns: 1fr; }
+
+  .acc-brand {
+    padding: var(--space-6);
+    gap: var(--space-6);
+  }
+
+  .acc-brand-title { font-size: 1.5rem; max-width: none; }
+  .acc-points { display: none; }
+  .acc-brand-foot { font-size: 0.74rem; }
+
+  .acc-panel { padding: var(--space-8) var(--space-4); }
+  .acc-stats { grid-template-columns: 1fr 1fr; }
+  .acc-grid-2 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .acc-demo-grid { grid-template-columns: 1fr; }
+  .acc-deny { padding: var(--space-6) var(--space-4); margin: var(--space-6) auto; }
+  .acc-stats { grid-template-columns: 1fr 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acc-btn,
+  .acc-input,
+  .acc-demo,
+  .acc-menu > summary { transition: none; }
+  .acc-btn.is-loading::after { animation: none; }
+}
