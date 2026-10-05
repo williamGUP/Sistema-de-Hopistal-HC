@@ -1,0 +1,323 @@
+param(
+    [string]$Base = "http://localhost:8099"
+)
+
+# ============================================================================
+#  Hospital HC - pruebas del subsistema de acceso y roles
+#
+#  Uso (con el servidor ya arrancado y una base de datos recien creada):
+#      1. Deten el servidor y borra la carpeta data\
+#      2. java -jar hospital.jar 8099
+#      3. powershell -ExecutionPolicy Bypass -File test\TestAccesoRoles.ps1
+#
+#  El script usa usuarios desechables con sufijo aleatorio para el bloqueo y
+#  el cambio de contrasena, de modo que las pruebas dontienen cuentas ajenas.
+#
+#  Comprueba: proteccion de rutas, permisos de los cuatro roles, cabeceras de
+#  seguridad, CSRF, bloqueo por fuerza bruta, cierre de sesion, cambio de
+#  contrasena y administracion de usuarios.
+# ============================================================================
+
+$ErrorActionPreference = 'Continue'
+$global:pass = 0
+$global:fail = 0
+
+function Check($nombre, $condicion, $detalle = "") {
+    if ($condicion) {
+        $script:pass++
+        Write-Host ("  [OK]    " + $nombre) -ForegroundColor Green
+    } else {
+        $script:fail++
+        Write-Host ("  [FALLA] " + $nombre + "   " + $detalle) -ForegroundColor Red
+    }
+}
+
+# --- Cliente HTTP minimo: no lanza excepcion ante 4xx/5xx y no sigue redirecciones ---
+
+function Invoke-Http {
+    param(
+        [string]$Metodo = 'GET',
+        [string]$Ruta = '/',
+        $Cookies = $null,
+        [hashtable]$Form = $null,
+        [string]$Origen = ''
+    )
+
+    $peticion = [System.Net.HttpWebRequest]::Create("$Base$Ruta")
+    $peticion.Method = $Metodo
+    $peticion.AllowAutoRedirect = $false
+    $peticion.UserAgent = 'HospitalHC-Pruebas/1.0'
+    $peticion.Timeout = 15000
+    $peticion.ReadWriteTimeout = 15000
+    $peticion.KeepAlive = $false
+
+    if ($null -ne $Cookies) { $peticion.CookieContainer = $Cookies }
+    if ($Origen -ne '') { $peticion.Headers.Add('Origin', $Origen) }
+
+    if ($null -ne $Form) {
+        $pares = @()
+        foreach ($clave in $Form.Keys) {
+            $pares += ([uri]::EscapeDataString([string]$clave) + '=' +
+                       [uri]::EscapeDataString([string]$Form[$clave]))
+        }
+        $cuerpo = [System.Text.Encoding]::UTF8.GetBytes(($pares -join '&'))
+        $peticion.ContentType = 'application/x-www-form-urlencoded; charset=UTF-8'
+        $peticion.ContentLength = $cuerpo.Length
+        $flujo = $peticion.GetRequestStream()
+        $flujo.Write($cuerpo, 0, $cuerpo.Length)
+        $flujo.Close()
+    }
+
+    $respuesta = $null
+    $estado = 0
+    $cuerpoTexto = ''
+    $ubicacion = ''
+    $cabeceraCookie = ''
+    try {
+        $respuesta = $peticion.GetResponse()
+    } catch [System.Net.WebException] {
+        $respuesta = $_.Exception.Response
+    }
+
+    if ($null -ne $respuesta) {
+        $estado = [int]$respuesta.StatusCode
+        $ubicacion = $respuesta.Headers['Location']
+        $cabeceraCookie = $respuesta.Headers['Set-Cookie']
+        $lector = New-Object System.IO.StreamReader($respuesta.GetResponseStream())
+        $cuerpoTexto = $lector.ReadToEnd()
+        $lector.Close()
+        $respuesta.Close()
+    }
+
+    return [pscustomobject]@{
+        Codigo = $estado
+        Location = $ubicacion
+        Html = $cuerpoTexto
+        SetCookie = $cabeceraCookie
+    }
+}
+
+function New-Cookies { return (New-Object System.Net.CookieContainer) }
+
+function Get-Pagina($ruta, $cookies) { return Invoke-Http -Metodo GET -Ruta $ruta -Cookies $cookies }
+function Post-Form($ruta, $form, $cookies) { return Invoke-Http -Metodo POST -Ruta $ruta -Form $form -Cookies $cookies -Origen $Base }
+
+function Entrar($usuario, $clave) {
+    $c = New-Cookies
+    $r = Invoke-Http -Metodo POST -Ruta '/login' -Form @{ username = $usuario; password = $clave } -Cookies $c -Origen $Base
+    if ($r.Codigo -ne 302) { Write-Host ("    (no se pudo iniciar sesion como " + $usuario + ")") -ForegroundColor Yellow }
+    return $c
+}
+
+# Extrae el identificador de la fila que corresponde a un usuario concreto,
+# en vez de emparejar el enlace con el nombre equivocado.
+function Obtener-IdUsuario($html, $usuario) {
+    foreach ($fila in ($html -split '<tr>')) {
+        if ($fila -notmatch [regex]::Escape($usuario)) { continue }
+        if ($fila -match '/usuarios/(\d+)/editar') { return $Matches[1] }
+    }
+    return $null
+}
+
+# ============================================================================
+
+$sufijo = Get-Random -Minimum 1000 -Maximum 9999
+Write-Host ''
+Write-Host "=== 1. Sin sesion: todo queda cerrado ===" -ForegroundColor Cyan
+$c = New-Cookies
+$r = Get-Pagina '/' $c
+Check 'GET / sin sesion -> 302 al login' ($r.Codigo -eq 302 -and $r.Location -like '*login*') "codigo=$($r.Codigo)"
+$r = Get-Pagina '/pacientes' $c
+Check 'GET /pacientes sin sesion -> 302' ($r.Codigo -eq 302) "codigo=$($r.Codigo)"
+$r = Get-Pagina '/usuarios' $c
+Check 'GET /usuarios sin sesion -> 302' ($r.Codigo -eq 302) "codigo=$($r.Codigo)"
+$r = Get-Pagina '/auditoria' $c
+Check 'GET /auditoria sin sesion -> 302' ($r.Codigo -eq 302) "codigo=$($r.Codigo)"
+$r = Get-Pagina '/static/css/seguridad.css' $c
+Check 'El CSS es publico -> 200' ($r.Codigo -eq 200) "codigo=$($r.Codigo)"
+$r = Get-Pagina '/login' $c
+Check 'GET /login es publico -> 200' ($r.Codigo -eq 200) "codigo=$($r.Codigo)"
+
+Write-Host ''
+Write-Host '=== 2. Inicio de sesion ===' -ForegroundColor Cyan
+$cMal = New-Cookies
+$r = Post-Form '/login' @{ username = 'admin'; password = 'incorrecta' } $cMal
+Check 'Contrasena incorrecta -> 401' ($r.Codigo -eq 401) "codigo=$($r.Codigo)"
+$cMal = New-Cookies
+$r = Post-Form '/login' @{ username = 'noexiste'; password = '12345678' } $cMal
+Check 'Usuario inexistente -> 401 con el mismo mensaje' `
+    ($r.Codigo -eq 401 -and $r.Html -match 'Usuario o contrasena incorrectos')
+
+$cAdmin = Entrar 'admin' 'Admin2026'
+$r = Get-Pagina '/mi-cuenta' $cAdmin
+Check 'Sesion de admin establecida' ($r.Codigo -eq 200 -and $r.Html -match 'Elena Ramirez Rojas')
+$idActualAdmin = Obtener-IdUsuario -Html (Get-Pagina '/usuarios' $cAdmin).Html -Usuario 'admin'
+
+# La cabecera se comprueba en crudo: .NET Framework no expone el atributo SameSite.
+$rLogin = Invoke-Http -Metodo POST -Ruta '/login' -Origen $Base `
+    -Form @{ username = 'enfermera'; password = 'Enfermera2026' } -Cookies (New-Cookies)
+Check 'Se emite la cookie HOSPITAL_SID' ($rLogin.SetCookie -like '*HOSPITAL_SID=*')
+Check 'La cookie es HttpOnly' ($rLogin.SetCookie -like '*HttpOnly*')
+Check 'La cookie es SameSite=Strict' ($rLogin.SetCookie -like '*SameSite=Strict*')
+Check 'La cookie tiene Path=/ y Max-Age' ($rLogin.SetCookie -like '*Path=/*' -and $rLogin.SetCookie -like '*Max-Age=*')
+
+Write-Host ''
+Write-Host '=== 3. Cabeceras de seguridad ===' -ForegroundColor Cyan
+$peticion = [System.Net.HttpWebRequest]::Create("$Base/login")
+$peticion.Method = 'GET'
+$peticion.UserAgent = 'HospitalHC-Pruebas/1.0'
+$resp = $peticion.GetResponse()
+Check 'Content-Security-Policy presente' ($null -ne $resp.Headers['Content-Security-Policy'])
+Check 'X-Frame-Options: DENY' ($resp.Headers['X-Frame-Options'] -eq 'DENY')
+Check 'X-Content-Type-Options: nosniff' ($resp.Headers['X-Content-Type-Options'] -eq 'nosniff')
+Check 'Cache-Control: no-store' ($resp.Headers['Cache-Control'] -like '*no-store*')
+Check 'frame-ancestors bloqueado en la CSP' ($resp.Headers['Content-Security-Policy'] -like "*frame-ancestors 'none'*")
+$resp.Close()
+
+Write-Host ''
+Write-Host '=== 4. Permisos de los cuatro roles ===' -ForegroundColor Cyan
+$cDig = Entrar 'digitador' 'Digitador2026'
+$cEnf = Entrar 'enfermera' 'Enfermera2026'
+$cDoc = Entrar 'doctor' 'Doctor2026'
+
+Check 'admin puede ver /usuarios' ((Get-Pagina '/usuarios' $cAdmin).Codigo -eq 200)
+Check 'digitador NO puede ver /usuarios' ((Get-Pagina '/usuarios' $cDig).Codigo -eq 403)
+Check 'enfermera NO puede ver /usuarios' ((Get-Pagina '/usuarios' $cEnf).Codigo -eq 403)
+Check 'doctor NO puede ver /usuarios' ((Get-Pagina '/usuarios' $cDoc).Codigo -eq 403)
+
+Check 'admin puede ver /auditoria' ((Get-Pagina '/auditoria' $cAdmin).Codigo -eq 200)
+Check 'digitador NO puede ver /auditoria' ((Get-Pagina '/auditoria' $cDig).Codigo -eq 403)
+Check 'enfermera NO puede ver /auditoria' ((Get-Pagina '/auditoria' $cEnf).Codigo -eq 403)
+Check 'doctor NO puede ver /auditoria' ((Get-Pagina '/auditoria' $cDoc).Codigo -eq 403)
+
+Check 'digitador NO registra operaciones' ((Get-Pagina '/pacientes/1/operaciones/nueva' $cDig).Codigo -eq 403)
+Check 'enfermera NO registra operaciones' ((Get-Pagina '/pacientes/1/operaciones/nueva' $cEnf).Codigo -eq 403)
+Check 'doctor SI registra operaciones' ((Get-Pagina '/pacientes/1/operaciones/nueva' $cDoc).Codigo -eq 200)
+
+Check 'digitador NO registra consultas' ((Get-Pagina '/pacientes/1/consultas/nueva' $cDig).Codigo -eq 403)
+Check 'enfermera SI registra consultas' ((Get-Pagina '/pacientes/1/consultas/nueva' $cEnf).Codigo -eq 200)
+Check 'doctor SI registra consultas' ((Get-Pagina '/pacientes/1/consultas/nueva' $cDoc).Codigo -eq 200)
+
+Check 'digitador NO registra enfermedades' ((Get-Pagina '/pacientes/1/enfermedades/nueva' $cDig).Codigo -eq 403)
+Check 'enfermera SI registra enfermedades' ((Get-Pagina '/pacientes/1/enfermedades/nueva' $cEnf).Codigo -eq 200)
+Check 'doctor SI registra enfermedades' ((Get-Pagina '/pacientes/1/enfermedades/nueva' $cDoc).Codigo -eq 200)
+
+foreach ($par in @(@('digitador', $cDig), @('enfermera', $cEnf), @('doctor', $cDoc), @('admin', $cAdmin))) {
+    $nombre = $par[0]
+    $sesion = $par[1]
+    $okLista = (Get-Pagina '/pacientes' $sesion).Codigo -eq 200
+    $okCuenta = (Get-Pagina '/mi-cuenta' $sesion).Codigo -eq 200
+    Check "$nombre ve pacientes y su cuenta" ($okLista -and $okCuenta)
+}
+
+Write-Host ''
+Write-Host '=== 5. Dar de baja a un paciente: solo administrador ===' -ForegroundColor Cyan
+Check 'digitador NO puede dar de baja' ((Post-Form '/pacientes/1/eliminar' @{} $cDig).Codigo -eq 403)
+Check 'enfermera NO puede dar de baja' ((Post-Form '/pacientes/1/eliminar' @{} $cEnf).Codigo -eq 403)
+Check 'doctor NO puede dar de baja' ((Post-Form '/pacientes/1/eliminar' @{} $cDoc).Codigo -eq 403)
+
+Write-Host ''
+Write-Host '=== 6. Proteccion CSRF (POST con origen ajeno) ===' -ForegroundColor Cyan
+$r = Invoke-Http -Metodo POST -Ruta '/pacientes/nuevo' -Cookies $cAdmin -Origen 'http://sitio-malicioso.example' `
+    -Form @{ dni = '11111111'; nombres = 'Intruso' }
+Check 'POST con Origin ajeno -> 403' ($r.Codigo -eq 403) "codigo=$($r.Codigo)"
+$r = Invoke-Http -Metodo POST -Ruta '/pacientes/nuevo' -Cookies $cAdmin -Form @{ dni = '11111111' }
+Check 'POST sin Origin ni Referer -> 403' ($r.Codigo -eq 403) "codigo=$($r.Codigo)"
+
+Write-Host ''
+Write-Host '=== 7. Bloqueo por intentos fallidos ===' -ForegroundColor Cyan
+$cAtaque = New-Cookies
+$objetivo = 'objetivo' + $sufijo
+$codigos = @()
+1..6 | ForEach-Object {
+    $codigos += (Post-Form '/login' @{ username = $objetivo; password = 'malo' } $cAtaque).Codigo
+}
+Check 'Los primeros intentos devuelven 401' ($codigos[0] -eq 401) "codigos=$($codigos -join ',')"
+Check 'Al sexto intento la cuenta queda bloqueada (429)' ($codigos[5] -eq 429) "codigos=$($codigos -join ',')"
+
+Write-Host ''
+Write-Host '=== 8. Cierre de sesion ===' -ForegroundColor Cyan
+$r = Post-Form '/logout' @{} $cDig
+Check 'POST /logout -> 302 al login' ($r.Codigo -eq 302 -and $r.Location -like '*login*') "codigo=$($r.Codigo)"
+$r = Get-Pagina '/pacientes' $cDig
+Check 'Tras cerrar sesion, /pacientes -> 302' ($r.Codigo -eq 302) "codigo=$($r.Codigo)"
+
+Write-Host ''
+Write-Host '=== 9. Cambio de contrasena propia ===' -ForegroundColor Cyan
+# Se usa una cuenta desechable para no dejar cambiada la clave de demostracion.
+$userTemporal = 'probador' + $sufijo
+$claveTemporal = 'Temporal2026'
+$r = Post-Form '/usuarios/nuevo' @{ username = $userTemporal; nombreCompleto = 'Usuario Probador'; password = $claveTemporal; rol = 'DIGITADOR' } $cAdmin
+Check 'Se crea la cuenta temporal de prueba' ($r.Codigo -eq 302) "codigo=$($r.Codigo)"
+
+$cCambio = Entrar $userTemporal $claveTemporal
+$r = Post-Form '/mi-cuenta' @{ passwordActual = 'incorrecta'; passwordNueva = 'NuevaClave2026'; passwordRepetir = 'NuevaClave2026' } $cCambio
+Check 'Rechaza si la contrasena actual falla' ($r.Codigo -eq 401) "codigo=$($r.Codigo)"
+$r = Post-Form '/mi-cuenta' @{ passwordActual = $claveTemporal; passwordNueva = 'NuevaClave2026'; passwordRepetir = 'Otra2026' } $cCambio
+Check 'Rechaza si la repeticion no coincide' ($r.Codigo -eq 400) "codigo=$($r.Codigo)"
+$r = Post-Form '/mi-cuenta' @{ passwordActual = $claveTemporal; passwordNueva = 'corta'; passwordRepetir = 'corta' } $cCambio
+Check 'Rechaza contrasena que no cumple la politica' ($r.Codigo -eq 400) "codigo=$($r.Codigo)"
+$r = Post-Form '/mi-cuenta' @{ passwordActual = $claveTemporal; passwordNueva = 'NuevaClave2026'; passwordRepetir = 'NuevaClave2026' } $cCambio
+Check 'Acepta el cambio valido -> 302' ($r.Codigo -eq 302) "codigo=$($r.Codigo)"
+$r = Post-Form '/login' @{ username = $userTemporal; password = $claveTemporal } (New-Cookies)
+Check 'La contrasena anterior ya no sirve' ($r.Codigo -eq 401) "codigo=$($r.Codigo)"
+$cNueva = Entrar $userTemporal 'NuevaClave2026'
+Check 'La contrasena nueva si sirve' ((Get-Pagina '/pacientes' $cNueva).Codigo -eq 200)
+$r = Post-Form '/mi-cuenta' @{ passwordActual = 'NuevaClave2026'; passwordNueva = 'NuevaClave2026'; passwordRepetir = 'NuevaClave2026' } $cNueva
+Check 'No admite repetir la misma contrasena' ($r.Codigo -eq 400) "codigo=$($r.Codigo)"
+
+Write-Host ''
+Write-Host '=== 10. Administracion de usuarios ===' -ForegroundColor Cyan
+$usuarioNuevo = 'empleado' + (Get-Random -Minimum 100 -Maximum 999)
+$r = Post-Form '/usuarios/nuevo' @{ username = 'corto'; nombreCompleto = 'X'; password = '123'; rol = 'DOCTOR' } $cAdmin
+Check 'Rechaza contrasena corta' ($r.Codigo -eq 400) "codigo=$($r.Codigo)"
+$r = Post-Form '/usuarios/nuevo' @{ username = $usuarioNuevo; nombreCompleto = 'Personal De Prueba'; password = 'ClaveSegura1'; rol = 'ENFERMERA' } $cAdmin
+Check 'Crea un usuario nuevo -> 302' ($r.Codigo -eq 302) "codigo=$($r.Codigo)"
+$r = Post-Form '/usuarios/nuevo' @{ username = $usuarioNuevo; nombreCompleto = 'Otro Usuario'; password = 'ClaveSegura1'; rol = 'DOCTOR' } $cAdmin
+Check 'Rechaza usuarios duplicados' ($r.Codigo -eq 400) "codigo=$($r.Codigo)"
+$r = Get-Pagina '/usuarios' $cAdmin
+Check 'El usuario nuevo aparece en el listado' ($r.Html -match $usuarioNuevo)
+$cNuevo = Entrar $usuarioNuevo 'ClaveSegura1'
+Check 'El usuario nuevo puede iniciar sesion' ((Get-Pagina '/pacientes' $cNuevo).Codigo -eq 200)
+Check 'El usuario nuevo no puede administrar usuarios' ((Get-Pagina '/usuarios' $cNuevo).Codigo -eq 403)
+
+Write-Host ''
+Write-Host '=== 11. Desactivacion y reactivacion de usuarios ===' -ForegroundColor Cyan
+$listado = (Get-Pagina '/usuarios' $cAdmin).Html
+$idNuevo = Obtener-IdUsuario -Html $listado -Usuario $usuarioNuevo
+
+if ($null -ne $idNuevo) {
+    $r = Post-Form "/usuarios/$idNuevo/eliminar" @{} $cAdmin
+    Check 'El administrador puede desactivar -> 302' ($r.Codigo -eq 302) "codigo=$($r.Codigo)"
+    $r = Get-Pagina '/pacientes' $cNuevo
+    Check 'El usuario desactivado pierde el acceso' ($r.Codigo -eq 302) "codigo=$($r.Codigo)"
+    $r = Post-Form '/login' @{ username = $usuarioNuevo; password = 'ClaveSegura1' } (New-Cookies)
+    Check 'El usuario desactivado no puede volver a entrar' ($r.Codigo -eq 401) "codigo=$($r.Codigo)"
+
+    $r = Post-Form "/usuarios/$idNuevo/editar" @{ nombreCompleto = 'Personal De Prueba'; password = ''; rol = 'ENFERMERA'; activo = '1' } $cAdmin
+    Check 'El administrador puede reactivar -> 302' ($r.Codigo -eq 302) "codigo=$($r.Codigo)"
+    Check 'El usuario desactivado tampoco se auto-desactiva' ((Post-Form "/usuarios/$idActualAdmin/eliminar" @{} $cAdmin).Codigo -eq 302)
+    Check 'El administrador sigue con acceso' ((Get-Pagina '/usuarios' $cAdmin).Codigo -eq 200)
+} else {
+    Check 'Se encontro el usuario creado en el listado' $false 'no se pudo extraer el id'
+}
+
+Write-Host ''
+Write-Host '=== 12. Bitacora de seguridad ===' -ForegroundColor Cyan
+$r = Get-Pagina '/auditoria' $cAdmin
+Check 'La bitacora registra los accesos' ($r.Codigo -eq 200 -and $r.Html -match 'Intentos fallidos')
+Check 'Quedaron registrados los intentos fallidos' ($r.Html -match 'FALLIDO')
+Check 'Quedaron registradas las denegaciones por rol' ($r.Html -match 'DENEGADO')
+
+Write-Host ''
+Write-Host '============================================' -ForegroundColor Cyan
+Write-Host ("  Pruebas correctas: " + $pass)
+if ($fail -eq 0) {
+    Write-Host '  Pruebas fallidas:  0' -ForegroundColor Green
+    Write-Host ''
+    Write-Host '  TODO CORRECTO' -ForegroundColor Green
+} else {
+    Write-Host ("  Pruebas fallidas:  " + $fail) -ForegroundColor Red
+}
+Write-Host ''
+exit $(if ($fail -eq 0) { 0 } else { 1 })
